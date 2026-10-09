@@ -1,0 +1,229 @@
+# Every rule the validator reports. Codes are stable: never reuse or renumber.
+# severity: error fails validation; warning is reported but exits 0.
+# fixable: true means `nsk validate --fix` corrects it without judgment.
+rules:
+  # Layout
+  - code: NSK101
+    severity: error
+    fixable: false
+    summary: File or folder under the docs folder that the layout doesn't allow.
+  - code: NSK102
+    severity: error
+    fixable: false
+    summary: File name doesn't match the pattern for its folder.
+  - code: NSK103
+    severity: error
+    fixable: false
+    summary: Ticket ID in the file name differs from the frontmatter id.
+  - code: NSK104
+    severity: error
+    fixable: false
+    summary: nsk.yaml is missing or invalid.
+  - code: NSK105
+    severity: error
+    fixable: false
+    summary: Ticket ID uses a key other than the project key.
+
+  # Markdown format
+  - code: NSK201
+    severity: error
+    fixable: partial
+    summary: Markdown style violation (the message names the markdownlint rule). Fixed when markdownlint can fix it.
+  - code: NSK202
+    severity: error
+    fixable: false
+    summary: Document must have exactly one H1, directly after the frontmatter.
+  - code: NSK203
+    severity: error
+    fixable: true
+    summary: H1 text differs from the frontmatter title.
+  - code: NSK204
+    severity: error
+    fixable: true
+    summary: File uses CRLF line endings or a byte order mark.
+  - code: NSK205
+    severity: error
+    fixable: false
+    summary: Heading level not allowed here (H3 only inside sections that define subsections or entries; H4 and deeper never).
+
+  # Frontmatter
+  - code: NSK301
+    severity: error
+    fixable: false
+    summary: Frontmatter block missing or not valid YAML.
+  - code: NSK302
+    severity: error
+    fixable: false
+    summary: Required frontmatter field missing.
+  - code: NSK303
+    severity: error
+    fixable: false
+    summary: Unknown frontmatter field.
+  - code: NSK304
+    severity: error
+    fixable: false
+    summary: Frontmatter value has the wrong type, or is null where null isn't allowed.
+  - code: NSK305
+    severity: error
+    fixable: false
+    summary: Frontmatter value isn't one of the allowed values, or is outside its bounds.
+  - code: NSK306
+    severity: error
+    fixable: false
+    summary: Frontmatter value doesn't match its format (date, semver, ticket ID, or pattern).
+  - code: NSK307
+    severity: error
+    fixable: true
+    summary: Frontmatter keys are out of order.
+
+  # Sections
+  - code: NSK401
+    severity: error
+    fixable: false
+    summary: Required section missing.
+  - code: NSK402
+    severity: error
+    fixable: false
+    summary: Section out of order.
+  - code: NSK403
+    severity: error
+    fixable: false
+    summary: Unknown section heading.
+  - code: NSK404
+    severity: error
+    fixable: false
+    summary: Section appears more than once.
+  - code: NSK405
+    severity: error
+    fixable: false
+    summary: Section content isn't the required type (table, list, checklist, fields, entries, or generated block).
+  - code: NSK406
+    severity: error
+    fixable: false
+    summary: Table columns differ from the schema, or a cell breaks a column rule.
+  - code: NSK407
+    severity: error
+    fixable: false
+    summary: Row, entry, or item ID is malformed or duplicated.
+  - code: NSK408
+    severity: error
+    fixable: false
+    summary: List, checklist, or entry item doesn't match the required pattern or labels.
+  - code: NSK409
+    severity: error
+    fixable: false
+    summary: Section is empty but must have content in the current status, or has fewer items than the minimum.
+  - code: NSK410
+    severity: error
+    fixable: false
+    summary: Section must be empty in the current status (for example Open Questions in an approved PRD).
+  - code: NSK411
+    severity: error
+    fixable: false
+    summary: Placeholder text (TODO, TBD, ???, <...>) in a status that forbids it.
+  - code: NSK412
+    severity: error
+    fixable: false
+    summary: Changelog's newest version differs from the frontmatter version.
+
+  # References
+  - code: NSK501
+    severity: error
+    fixable: false
+    summary: Two tickets share an ID.
+  - code: NSK502
+    severity: error
+    fixable: false
+    summary: Ticket reference points to a ticket that doesn't exist or is the wrong kind.
+  - code: NSK503
+    severity: error
+    fixable: false
+    summary: Requirement ID not defined in the PRD.
+  - code: NSK504
+    severity: warning
+    fixable: false
+    summary: PRD functional requirement not covered by any epic.
+  - code: NSK505
+    severity: error
+    fixable: false
+    summary: Story's sprint isn't in the sprint tracker.
+  - code: NSK506
+    severity: error
+    fixable: false
+    summary: Story dependencies form a cycle.
+  - code: NSK507
+    severity: error
+    fixable: false
+    summary: AC ID cited in Tasks, Test Plan, or QA Record isn't defined in the story.
+  - code: NSK508
+    severity: error
+    fixable: false
+    summary: NFR Mapping cites an unknown NFR, or an approved architecture leaves an NFR unmapped.
+  - code: NSK509
+    severity: error
+    fixable: false
+    summary: Epic's Requirements Coverage rows differ from its frontmatter requirements.
+  - code: NSK510
+    severity: error
+    fixable: false
+    summary: Sprint numbers aren't 1, 2, 3, ... in order, or a sprint section has no matching frontmatter entry.
+
+  # Status gates
+  - code: NSK601
+    severity: error
+    fixable: false
+    summary: Status needs an upstream document approved (epic ready needs the PRD; story ready needs the architecture and coding standards).
+  - code: NSK602
+    severity: error
+    fixable: false
+    summary: Story can't be ready or later without points, or with an AC that no task cites.
+  - code: NSK603
+    severity: error
+    fixable: false
+    summary: Story can't be ready or later while its epic is draft.
+  - code: NSK604
+    severity: error
+    fixable: false
+    summary: Story in-progress needs an active sprint and an assignee.
+  - code: NSK605
+    severity: error
+    fixable: false
+    summary: Story in-qa or done needs every task checked.
+  - code: NSK606
+    severity: error
+    fixable: false
+    summary: Story done needs a PASS in its latest QA round for every AC.
+  - code: NSK607
+    severity: error
+    fixable: true
+    summary: blocked_reason must be set while blocked and null otherwise (--fix clears a stale reason).
+  - code: NSK608
+    severity: error
+    fixable: false
+    summary: Epic status is inconsistent with its stories (done needs every story done).
+  - code: NSK609
+    severity: error
+    fixable: false
+    summary: Sprint state is invalid (more than one active sprint, end before start, missing committed or completed).
+  - code: NSK610
+    severity: warning
+    fixable: false
+    summary: Sprint commits more points than its capacity.
+  - code: NSK611
+    severity: error
+    fixable: false
+    summary: Story in a planned or active sprint is still draft.
+  - code: NSK612
+    severity: error
+    fixable: false
+    summary: Story is committed to a sprint ahead of a story it depends on.
+
+  # Generated content
+  - code: NSK701
+    severity: error
+    fixable: true
+    summary: Generated block is stale or was edited by hand.
+  - code: NSK702
+    severity: error
+    fixable: true
+    summary: Generated block markers missing or malformed.

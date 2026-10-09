@@ -1,0 +1,11 @@
+schema_version: 1
+nsk_version: 0.1.0
+project:
+  name: PawPlan
+  key: PAW
+docs_dir: docs
+sprint:
+  length_days: 14
+  start_weekday: monday
+agents: [claude, codex, cursor]
+ignore: []

@@ -1,0 +1,55 @@
+kind: config
+title: Project config
+description: >-
+  The project's nsk configuration, stored as nsk.yaml at the repository root.
+  It names the project, holds the ticket key, and says where the managed docs
+  live and which agents have skills installed.
+path: ../nsk.yaml
+frontmatter:
+  - name: schema_version
+    type: integer
+    fixed: 1
+    description: Version of this spec the project follows.
+  - name: nsk_version
+    type: semver
+    description: Version of nsk that last installed or updated the skills.
+  - name: project
+    type: object
+    fields:
+      - name: name
+        type: string
+        description: Product name shown in documents.
+      - name: key
+        type: string
+        pattern: '^[A-Z][A-Z0-9]{1,9}$'
+        description: >-
+          Ticket key, asked for during /kickoff. 2 to 10 uppercase letters or
+          digits, starting with a letter. Never changes once tickets exist.
+  - name: docs_dir
+    type: string
+    pattern: '^[a-z0-9][a-z0-9._/-]*$'
+    description: Managed folder, relative to the repository root.
+  - name: sprint
+    type: object
+    fields:
+      - name: length_days
+        type: integer
+        min: 1
+        max: 30
+        description: Default sprint length in calendar days.
+      - name: start_weekday
+        type: enum
+        values: [monday, tuesday, wednesday, thursday, friday, saturday, sunday]
+        description: Day new sprints start on by default.
+  - name: agents
+    type: list
+    items:
+      type: enum
+      values: [claude, codex, cursor, gemini, copilot]
+    description: Agents whose skills directories nsk install and nsk update manage.
+  - name: ignore
+    type: list
+    items:
+      type: string
+    description: Glob patterns under docs_dir that the layout check skips.
+sections: []

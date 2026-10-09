@@ -1,0 +1,54 @@
+kind: brief
+title: Project brief
+description: >-
+  The idea as the team first hears it. Written by /kickoff from the user's own
+  words, before any requirements work. Everything later traces back to it.
+path: brief.md
+statuses:
+  values: [draft, approved]
+  transitions:
+    draft: [approved]
+    approved: [draft]
+frontmatter:
+  - name: title
+    type: string
+    description: Document title. The H1 must match it exactly.
+  - name: status
+    type: enum
+    values: [draft, approved]
+    description: approved once the owner has signed it off.
+  - name: version
+    type: semver
+    description: Bumped on every approved change. Minor for additions, major for breaking scope changes.
+  - name: updated
+    type: date
+    description: Date of the last change.
+sections:
+  - heading: Idea
+    content: { type: prose }
+    no_placeholders_in: [approved]
+    non_empty_in: [draft, approved]
+    guidance: Two or three sentences on what is being built and for whom.
+  - heading: Problem
+    content: { type: prose }
+    no_placeholders_in: [approved]
+    non_empty_in: [approved]
+    guidance: The pain today, who feels it, and what it costs them.
+  - heading: Target Users
+    content: { type: list, min_items: 1 }
+    no_placeholders_in: [approved]
+    non_empty_in: [approved]
+    guidance: One bullet per user group, with what they need.
+  - heading: Goals
+    content: { type: list, min_items: 1 }
+    no_placeholders_in: [approved]
+    non_empty_in: [approved]
+    guidance: Measurable outcomes. Prefer numbers and dates.
+  - heading: Constraints
+    content: { type: list }
+    no_placeholders_in: [approved]
+    guidance: Budget, deadlines, mandated technology, compliance. Write "None known." if there are none.
+  - heading: Raw Input
+    content: { type: prose }
+    non_empty_in: [draft, approved]
+    guidance: The user's original words, verbatim, as a blockquote. Never edited after kickoff.

@@ -1,0 +1,36 @@
+{
+  "name": "n-skills",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Agent skills and a strict Markdown validator for running a spec-driven agile project.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "nsk": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "spec",
+    "skills",
+    "templates"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test \"test/**/*.test.ts\"",
+    "lint:md": "markdownlint-cli2 --config spec/markdownlint.json \"*.md\" \"spec/**/*.md\" \"examples/**/*.md\"",
+    "check": "npm run typecheck && npm run lint:md && npm test"
+  },
+  "dependencies": {
+    "markdownlint": "^0.41.1",
+    "yaml": "^2.9.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "markdownlint-cli2": "^0.23.3",
+    "typescript": "^5.9.3"
+  }
+}

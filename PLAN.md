@@ -1,12 +1,16 @@
 # n-skills: Plan
 
-A small, opinionated set of agent skills for running an agile project, with every
-piece of project state kept in strictly structured Markdown. It works with any
-model and any agent: the skills follow the open Agent Skills format
-(`SKILL.md`), and a deterministic CLI enforces structure.
+A small, opinionated set of agent skills that lets an agent work the way a real
+software team does, from the first idea to the last sprint, using spec-driven
+development. Every piece of project state is kept in strictly structured
+Markdown. It works with any model and any agent: the skills follow the open
+Agent Skills format (`SKILL.md`), and a deterministic CLI enforces structure.
 
 Think of it as BMAD with less: fewer roles, fewer files, one schema per
 artifact, and a validator that fails loudly.
+
+`n-skills` and `nsk` are working names. Section 10 lists candidates for the
+final name.
 
 ## 1. Design principles
 
@@ -27,7 +31,13 @@ artifact, and a validator that fails loudly.
    the persona, inputs, procedure, quality bar, and hand-off in roughly 150
    lines or less. Long templates are not embedded in skills, because
    `nsk schema <type>` prints the spec on demand.
-6. **Nothing outside the agent-skills standard.** Frontmatter is `name` and
+6. **Specs drive the work, and every link is traceable.** Code exists because a
+   story asks for it, a story exists because an epic covers a requirement, and
+   a requirement exists because the PRD states it. The chain
+   `FR-001 → ACME-1 (epic) → ACME-4 (story) → AC-1 → test` is recorded in the
+   files and checked by the validator, so nothing is built without a spec and
+   no spec is silently left unbuilt.
+7. **Nothing outside the agent-skills standard.** Frontmatter is `name` and
    `description` only. Skills don't rely on vendor-specific tools, so they run
    in Claude Code, Codex, Cursor, Gemini CLI, Copilot, OpenCode, and similar
    agents.
@@ -43,17 +53,32 @@ docs/                       # managed root (configurable in nsk.yaml)
 ├── coding-standards.md
 ├── sprint-tracker.md
 ├── epics/
-│   └── E01-user-accounts.md
+│   └── ACME-1-user-accounts.md
 └── stories/
-    └── E01-S01-email-signup.md
+    └── ACME-4-email-signup.md
 ```
+
+### Ticket IDs
+
+IDs work like Jira tickets:
+
+- `/kickoff` asks for a **project key**: 2 to 10 characters, uppercase letters
+  and digits, starting with a letter (`ACME`, `PAW`, `HR2`).
+- Epics and stories share **one counter**, so every ticket in the project has a
+  unique number: `ACME-1` might be an epic and `ACME-2` its first story.
+- The story's epic is recorded in its `epic:` field and shown next to it in
+  every table (epic lists, sprint tables, the backlog). It is not part of the
+  ID, so moving a story to another epic never renames it.
+- `nsk new` assigns the next number by scanning existing tickets. Numbers are
+  never reused while the ticket exists, and the validator rejects duplicates,
+  which can appear when two branches each create a ticket.
 
 The layout is strict:
 
 - Any file or folder in `docs/` that isn't listed above is an error, unless it
   matches `ignore` in `nsk.yaml`.
-- File names must match `^E\d{2}-[a-z0-9-]+\.md$` (epics) and
-  `^E\d{2}-S\d{2}-[a-z0-9-]+\.md$` (stories).
+- Epic and story file names must match `^<KEY>-\d+-[a-z0-9-]+\.md$`, where
+  `<KEY>` is the project key from `nsk.yaml`.
 - The ID in a file name must equal the `id` in its frontmatter.
 
 `nsk.yaml` looks like this:
@@ -83,7 +108,7 @@ Every artifact has:
 - Section-level rules, such as "must contain a table with columns X, Y, Z",
   "list items must match a regex", or "no placeholders once approved".
 
-The schemas live in `src/schemas/*.yaml` and are the single contract. The
+The schemas live in `spec/schemas/*.yaml` and are the single contract. The
 validator, `nsk new`, and `nsk schema` all read them.
 
 ### Planning documents
@@ -100,13 +125,16 @@ validator, `nsk new`, and `nsk schema` all read them.
 
 ### Epic
 
-`docs/epics/E01-*.md` has this frontmatter:
+`docs/epics/ACME-1-*.md` has this frontmatter:
 
 ```yaml
-id: E01
+id: ACME-1
 title: User accounts
 status: draft        # draft | ready | in-progress | done
+priority: P1         # P0..P3, orders epics in the backlog
 requirements: [FR-001, FR-002]
+created: 2026-10-09
+updated: 2026-10-09
 ```
 
 Its sections are Goal, Scope, Out of Scope, Requirements Coverage, Stories (a
@@ -114,12 +142,12 @@ generated list), and Risks.
 
 ### Story
 
-`docs/stories/E01-S01-*.md` has this frontmatter:
+`docs/stories/ACME-4-*.md` has this frontmatter:
 
 ```yaml
-id: E01-S01
+id: ACME-4
 title: Sign up with email
-epic: E01
+epic: ACME-1
 status: draft        # draft | ready | in-progress | in-qa | done | blocked
 priority: P1         # P0..P3
 points: 3            # 1 2 3 5 8 13
@@ -142,22 +170,47 @@ Its sections are:
 
 ### Sprint tracker
 
-`docs/sprint-tracker.md` has `current_sprint` in its frontmatter and one H2 per
-sprint (`## Sprint 3`). Each sprint section has these fields:
+`docs/sprint-tracker.md` is the team board. It lists every sprint, the stories
+in each one and their current status, plus the backlog that sprint planning
+draws from.
 
-- Goal, dates, status (`planned | active | closed`), and capacity.
-- A generated committed-stories table, between
-  `<!-- nsk:generated -->` markers.
-- Velocity and Retro, filled in when the sprint is closed.
+Sprint facts (number, status, goal, dates, capacity) live in the frontmatter as
+a `sprints:` list, so they're easy to check. Status is
+`planned | active | closed`, and at most one sprint is active.
 
-Stories join a sprint through their own `sprint:` field. The tracker never
-holds story status by hand.
+The body is mostly generated from story and epic frontmatter:
+
+| Section | Content | Who writes it |
+| --- | --- | --- |
+| `## Overview` | One row per sprint: status, dates, goal, committed points, completed points, capacity. | Generated |
+| `## Backlog` | Every story not in a sprint, ordered by priority, with its epic, points and status. Ready stories are what `/sprint plan` picks from. | Generated |
+| `## Sprint N` | One per sprint, newest first. | Mixed |
+| `### Stories` | ID, title, epic, points, status, assignee. | Generated |
+| `### Review` | What was demoed and accepted. Required once closed. | `/sprint close` |
+| `### Retro` | Went well, to improve, actions. Required once closed. | `/sprint close` |
+
+Generated blocks sit between `<!-- nsk:generated:<name> -->` and
+`<!-- nsk:end -->` markers. `nsk validate --fix` rewrites them, and the
+validator fails if they're stale. Stories join a sprint only through their own
+`sprint:` field, so the tracker never holds story status by hand.
+
+Sprint planning (`/sprint plan`) works like a real planning meeting:
+
+1. Work out capacity: the last 3 sprints' average velocity, adjusted for
+   availability, or a team-provided number for the first sprint.
+2. Agree a sprint goal.
+3. Pull `ready` stories from the top of the backlog until capacity is reached,
+   checking dependencies.
+4. Record the sprint as `planned` and set each story's `sprint:`.
+
+The validator warns when committed points exceed capacity and errors when a
+sprint contains a story that wasn't `ready` when it was planned.
 
 ### Status gates (validator-enforced invariants)
 
 | Story status | Must be true |
 | --- | --- |
-| `ready` | Has at least 1 AC in Given/When/Then form. Points are set. No placeholders in Story, AC, or Tasks. Parent epic is not draft. `architecture.md` and `coding-standards.md` are approved. |
+| `ready` | Has at least 1 AC in Given/When/Then form. Every task names the AC IDs it serves. Points are set. No placeholders in Story, AC, or Tasks. Parent epic is not draft. `architecture.md` and `coding-standards.md` are approved. |
 | `in-progress` | `sprint` is set and that sprint is `active`. `assignee` is set. |
 | `in-qa` | All tasks are checked. Dev Record lists the changed files and tests. |
 | `done` | QA Record has a row for every AC, and every row is `PASS`. |
@@ -175,8 +228,10 @@ legal, for example `draft → in-qa` is rejected. It also stamps `updated`.
 
 ## 4. The CLI: `nsk`
 
-The CLI is plain Node ESM (Node 20 or later) with no build step. It has three
-dependencies: `markdownlint` (formatting and lint rules), `yaml`, and `ajv`.
+The CLI is written in TypeScript and published as compiled ESM JavaScript for
+Node 20 or later. It has two runtime dependencies: `markdownlint` (formatting
+and lint rules) and `yaml`. Frontmatter is checked against the schema's own
+field definitions, so there's no need for a JSON Schema library.
 
 | Command | Purpose |
 | --- | --- |
@@ -189,7 +244,7 @@ dependencies: `markdownlint` (formatting and lint rules), `yaml`, and `ajv`.
 | `nsk move <id> <status>` | Changes status with transition and gate checks. |
 | `nsk status [--json]` | Shows a board summary: the current sprint, counts by status, and what's next. |
 
-The installer's agent-to-directory map is data in `src/agents.yaml`, so adding
+The installer's agent-to-directory map is data in `spec/agents.yaml`, so adding
 an agent is a one-line change. Starting targets:
 
 - `.claude/skills/` (Claude Code)
@@ -221,7 +276,7 @@ reported for the agent to fix.
 Output looks like this:
 
 ```text
-docs/stories/E01-S02-login.md
+docs/stories/ACME-5-login.md
   NSK402  missing required section "## Acceptance Criteria" (after "## Story")
   NSK601  status "in-qa" requires all tasks checked (2 of 5 unchecked)
 ✖ 2 errors, 0 warnings in 1 file
@@ -319,18 +374,21 @@ Skills and the CLI are versioned together. `nsk.yaml` records the version, and
 
 ```text
 n-skills/
-├── package.json            # bin: nsk
-├── bin/nsk.js
+├── package.json            # bin: nsk → dist/cli.js
+├── tsconfig.json
 ├── src/
 │   ├── cli/                # init, install, update, new, schema, validate, move, status
 │   ├── validate/           # layout, markdown, frontmatter, sections, refs, gates, generated
-│   ├── schemas/            # brief, prd, architecture, standards, epic, story, tracker, nsk.yaml
+│   └── spec/               # loads and type-checks the schemas and rule catalogue
+├── spec/
+│   ├── schemas/            # brief, prd, architecture, standards, epic, story, tracker, config
+│   ├── rules.yaml          # every rule code, severity, and whether --fix handles it
 │   ├── agents.yaml         # agent → skills dir map
 │   └── markdownlint.json   # shipped lint config
 ├── skills/                 # the 10 skills (source of truth)
 ├── templates/              # AGENTS.md snippet, pre-commit, CI workflow
 ├── test/
-│   ├── unit/               # node:test
+│   ├── unit/               # node:test, run against the .ts sources
 │   └── fixtures/           # valid/ and invalid/ projects, one per rule code
 ├── examples/sample-project/  # fully worked, valid docs/ (also a regression fixture)
 ├── .github/workflows/ci.yml
@@ -341,30 +399,42 @@ n-skills/
 
 | Phase | Scope | Done when |
 | --- | --- | --- |
-| **0. Spec** | Write all schemas (section 3) and the rule catalogue (section 5) as `src/schemas/*.yaml`, plus a hand-written `examples/sample-project`. | The schemas and the example agree, and you have reviewed them. |
+| **0. Spec** | Write all schemas (section 3) and the rule catalogue (section 5) as `spec/schemas/*.yaml`, plus a hand-written `examples/sample-project`. | The schemas and the example agree, and you have reviewed them. |
 | **1. Validator** | `nsk validate` (+`--fix`, `--json`), `nsk schema`, and `nsk new`. Fixtures for every rule code. | Every invalid fixture fails with the expected code, and the sample project passes. |
 | **2. Planning skills** | `/validate`, `/kickoff`, `/prd`, `/architecture`, `/standards`, `/epics`, `/stories`. | A dry run from a one-paragraph idea to ready stories passes validation in at least 2 different agents. |
 | **3. Delivery skills** | `nsk move`, `nsk status`, tracker generation, `/sprint`, `/dev`, `/qa`. | One full sprint, from plan to close with dev and QA, runs on the sample project. |
 | **4. Distribution** | `nsk init`, `install`, `update`, the `--prefix` option, the agent map, the AGENTS.md snippet, pre-commit and CI templates, the starter template repo, and the npm publish workflow. | A fresh repo and an existing repo can each be set up with one command for Claude Code, Codex, and Cursor. |
 | **5. Dogfood & trim** | Run it on a real small project and cut anything the skills or CLI didn't actually need. | The `SKILL.md` files stay at or under ~150 lines, and you are happy with the workflow. |
 
-## 10. Decisions to confirm
+## 10. Decisions
 
-The defaults are what I would pick:
+Confirmed:
 
-1. **CLI runtime: Node.** It gives the best `npx` distribution and the
-   markdownlint ecosystem. The cost is that target projects need Node, even
-   Python-only ones. A single-binary build could come later.
-2. **Story IDs: `E01-S01`.** They are readable and sort naturally. The cost is
-   that moving a story to another epic changes its ID, which `nsk move` could
-   handle with a rename.
-3. **Sprint tracker: one `sprint-tracker.md`** with a section per sprint,
-   rather than a file per sprint.
-4. **Story statuses:** `draft, ready, in-progress, in-qa, done, blocked`. There
-   is no separate code-review state; `/dev` self-reviews against the
-   Definition of Done. A `/review` skill could be added later if needed.
-5. **Managed root: `docs/`**, configurable through `nsk.yaml` for repos that
-   already use `docs/` for something else.
+1. **CLI runtime: Node with TypeScript.** Go was considered. It would give a
+   single binary and no Node requirement in target projects, but the Markdown
+   tooling the validator relies on (markdownlint and its rule set) only exists
+   in JavaScript, and `npx` is the simplest install path for skills users. If
+   a Node-free install matters later, the CLI can be packaged as a standalone
+   executable without a rewrite.
+2. **Ticket IDs: Jira-style `<KEY>-<n>`** with one counter shared by epics and
+   stories. The project key is asked for during `/kickoff`. See section 2.
+3. **Sprint tracker: one `sprint-tracker.md`** that lists every sprint with
+   its stories and their status, plus the backlog, and supports sprint
+   planning. See section 3.
+4. **Story statuses:** `draft, ready, in-progress, in-qa, done, blocked`.
+5. **Managed root: `docs/`**, configurable in `nsk.yaml`.
 6. **First agents to support:** Claude Code, Codex, and Cursor, then Gemini
    CLI and Copilot.
-7. **npm package name:** `@nuwannnz/n-skills` with the CLI binary `nsk`.
+
+Still open: **the product name.** `n-skills` doesn't describe what the tool
+does. Candidates (all free on npm as of 2026-10-09):
+
+| Name | CLI | Why |
+| --- | --- | --- |
+| `specteam` | `specteam` / `stm` | A spec-driven team in a box. Says both halves of the idea. |
+| `sprintspec` | `sprintspec` / `ssp` | Leads with the agile process. |
+| `squadspec` | `squadspec` / `sqs` | Like `specteam`, a little more playful. |
+| `specboard` | `specboard` / `sbd` | Leads with the board and tracker. Undersells the expert roles. |
+
+Recommendation: `specteam`. Renaming is a find-and-replace until the first
+publish, so this doesn't block any phase before 4.

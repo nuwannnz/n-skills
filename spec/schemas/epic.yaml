@@ -1,0 +1,74 @@
+kind: epic
+title: Epic
+description: >-
+  A slice of user value that covers one or more PRD requirements, written by
+  /epics as a product owner. Epics are tickets: they share the project's
+  number sequence with stories.
+path: epics/{key}-{n}-{slug}.md
+statuses:
+  values: [draft, ready, in-progress, done]
+  transitions:
+    draft: [ready]
+    ready: [draft, in-progress]
+    in-progress: [done]
+    done: [in-progress]
+frontmatter:
+  - name: id
+    type: ticket-id
+    description: Assigned by nsk new. Must match the file name.
+  - name: title
+    type: string
+    description: Short outcome-focused name. The H1 must match it exactly.
+  - name: status
+    type: enum
+    values: [draft, ready, in-progress, done]
+    description: >-
+      ready needs an approved PRD. in-progress once any story is in progress.
+      done when every story is done.
+  - name: priority
+    type: enum
+    values: [P0, P1, P2, P3]
+    description: Orders epics, and breaks ties between equal-priority stories in the backlog.
+  - name: requirements
+    type: list
+    items:
+      type: string
+      pattern: '^FR-\d{3}$'
+    description: PRD functional requirements this epic delivers. Every FR should belong to some epic.
+  - name: created
+    type: date
+    description: Set by nsk new.
+  - name: updated
+    type: date
+    description: Date of the last change.
+sections:
+  - heading: Goal
+    content: { type: prose }
+    non_empty_in: [draft, ready, in-progress, done]
+    no_placeholders_in: [ready, in-progress, done]
+    guidance: The user value this epic delivers, in one paragraph.
+  - heading: Scope
+    content: { type: list, min_items: 1 }
+    non_empty_in: [ready, in-progress, done]
+    no_placeholders_in: [ready, in-progress, done]
+    guidance: What is included, one capability per bullet.
+  - heading: Out of Scope
+    content: { type: list }
+    no_placeholders_in: [ready, in-progress, done]
+    guidance: Related things that are deliberately left for later or for another epic.
+  - heading: Requirements Coverage
+    content:
+      type: table
+      columns: [Requirement, Coverage]
+      id_column: Requirement
+      id_pattern: '^FR-\d{3}$'
+    non_empty_in: [ready, in-progress, done]
+    no_placeholders_in: [ready, in-progress, done]
+    guidance: One row per frontmatter requirement, saying how this epic covers it. Rows must match the frontmatter list.
+  - heading: Stories
+    content: { type: generated, block: epic-stories }
+    guidance: Generated from stories whose epic is this one. Never edit by hand.
+  - heading: Risks
+    content: { type: list }
+    no_placeholders_in: [ready, in-progress, done]
+    guidance: Delivery risks specific to this epic.

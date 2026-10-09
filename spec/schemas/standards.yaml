@@ -1,0 +1,84 @@
+kind: standards
+title: Coding standards
+description: >-
+  The concrete, checkable rules every change must follow, written by
+  /standards as a tech lead from the architecture's stack. The Definition of
+  Done at the end is the checklist /dev and /qa apply to every story.
+path: coding-standards.md
+statuses:
+  values: [draft, approved]
+  transitions:
+    draft: [approved]
+    approved: [draft]
+frontmatter:
+  - name: title
+    type: string
+    description: Document title. The H1 must match it exactly.
+  - name: status
+    type: enum
+    values: [draft, approved]
+    description: approved once signed off. Stories can't be ready before that.
+  - name: version
+    type: semver
+    description: Bumped on every approved change, with a Changelog row.
+  - name: updated
+    type: date
+    description: Date of the last change.
+sections:
+  - heading: Stack & Versions
+    content:
+      type: table
+      columns: [Tool, Version, Purpose]
+      min_rows: 1
+    non_empty_in: [approved]
+    no_placeholders_in: [approved]
+    guidance: Languages, frameworks, and tools with pinned versions. Must agree with the architecture's Tech Stack.
+  - heading: Project Structure
+    content: { type: prose }
+    non_empty_in: [approved]
+    no_placeholders_in: [approved]
+    guidance: The source tree as a fenced text block, with what belongs where.
+  - heading: Naming
+    content: { type: list, min_items: 1 }
+    non_empty_in: [approved]
+    no_placeholders_in: [approved]
+    guidance: One checkable rule per bullet.
+  - heading: Formatting & Linting
+    content: { type: list, min_items: 1 }
+    non_empty_in: [approved]
+    no_placeholders_in: [approved]
+    guidance: The formatter and linter, their configs, and the commands that run them.
+  - heading: Testing
+    content: { type: list, min_items: 1 }
+    non_empty_in: [approved]
+    no_placeholders_in: [approved]
+    guidance: Test levels, frameworks, locations, naming, coverage expectations, and how tests cite AC IDs.
+  - heading: Error Handling & Logging
+    content: { type: list, min_items: 1 }
+    non_empty_in: [approved]
+    no_placeholders_in: [approved]
+    guidance: How errors are raised, mapped and logged, and what must never be logged.
+  - heading: Security
+    content: { type: list, min_items: 1 }
+    non_empty_in: [approved]
+    no_placeholders_in: [approved]
+    guidance: Input validation, secrets, auth, dependencies.
+  - heading: Git Workflow
+    content: { type: list, min_items: 1 }
+    non_empty_in: [approved]
+    no_placeholders_in: [approved]
+    guidance: Branch naming (including the ticket ID), commit format, and review rules.
+  - heading: Definition of Done
+    content: { type: checklist, min_items: 3 }
+    non_empty_in: [approved]
+    no_placeholders_in: [approved]
+    guidance: Unchecked boxes. /dev and /qa copy and tick them per story; here they stay unchecked.
+  - heading: Changelog
+    content:
+      type: table
+      columns: [Version, Date, Change]
+      id_column: Version
+      id_pattern: '^\d+\.\d+\.\d+$'
+      min_rows: 1
+    non_empty_in: [draft, approved]
+    guidance: Newest first. The top row's version must equal the frontmatter version.

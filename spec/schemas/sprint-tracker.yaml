@@ -1,0 +1,81 @@
+kind: sprint-tracker
+title: Sprint tracker
+description: >-
+  The team board, maintained by /sprint as a scrum master. Sprint facts live
+  in the frontmatter. The body lists every sprint with its stories and their
+  current status, plus the backlog that sprint planning pulls from; those
+  tables are generated from story frontmatter and must never be edited by
+  hand.
+path: sprint-tracker.md
+frontmatter:
+  - name: title
+    type: string
+    fixed: Sprint Tracker
+    description: Always "Sprint Tracker".
+  - name: updated
+    type: date
+    description: Date of the last change.
+  - name: sprints
+    type: list
+    description: Every sprint, oldest first. At most one is active.
+    items:
+      type: object
+      fields:
+        - name: number
+          type: integer
+          min: 1
+          description: 1, 2, 3, ... with no gaps.
+        - name: status
+          type: enum
+          values: [planned, active, closed]
+          description: planned → active (/sprint start) → closed (/sprint close).
+        - name: goal
+          type: string
+          description: The one outcome the sprint commits to.
+        - name: start
+          type: date
+          description: First day of the sprint.
+        - name: end
+          type: date
+          description: Last day of the sprint. On or after start.
+        - name: capacity
+          type: integer
+          min: 0
+          description: Points the team expects to finish, agreed at planning.
+        - name: committed
+          type: integer
+          min: 0
+          nullable: true
+          description: Points committed when the sprint started. Set by /sprint start.
+        - name: completed
+          type: integer
+          min: 0
+          nullable: true
+          description: Points done when the sprint closed (its velocity). Set by /sprint close.
+sections:
+  - heading: Overview
+    content: { type: generated, block: overview }
+    guidance: Generated. One row per sprint with dates, goal, capacity, committed and completed points.
+  - heading: Backlog
+    content: { type: generated, block: backlog }
+    guidance: Generated. Every story without a sprint, by priority. /sprint plan pulls ready stories from the top.
+  - heading_pattern: '^Sprint (\d+)$'
+    repeat: true
+    optional: true
+    guidance: One section per sprint in the frontmatter, newest first.
+    subsections:
+      - heading: Stories
+        content: { type: generated, block: 'sprint-{n}' }
+        guidance: Generated. The sprint's stories with their epic, points, status and assignee.
+      - heading: Review
+        content: { type: list }
+        non_empty_in: [closed]
+        no_placeholders_in: [closed]
+        guidance: Filled at /sprint close. What was demoed, what was accepted, and what carried over.
+      - heading: Retro
+        content:
+          type: fields
+          labels: [Went well, To improve, Actions]
+        non_empty_in: [closed]
+        no_placeholders_in: [closed]
+        guidance: Filled at /sprint close. Actions name an owner.

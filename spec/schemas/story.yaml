@@ -1,0 +1,128 @@
+kind: story
+title: Story
+description: >-
+  One user-visible change small enough for a single sprint, written by
+  /stories, built by /dev, and verified by /qa. Acceptance criteria are the
+  spec: tasks, tests and the QA record all cite their AC IDs.
+path: stories/{key}-{n}-{slug}.md
+statuses:
+  values: [draft, ready, in-progress, in-qa, done, blocked]
+  transitions:
+    draft: [ready, blocked]
+    ready: [draft, in-progress, blocked]
+    in-progress: [in-qa, blocked]
+    in-qa: [done, in-progress, blocked]
+    done: [in-progress]
+    blocked: [draft, ready, in-progress, in-qa]
+frontmatter:
+  - name: id
+    type: ticket-id
+    description: Assigned by nsk new. Must match the file name.
+  - name: title
+    type: string
+    description: Short, user-facing name. The H1 must match it exactly.
+  - name: epic
+    type: ticket-ref
+    ref: epic
+    description: The epic this story belongs to.
+  - name: status
+    type: enum
+    values: [draft, ready, in-progress, in-qa, done, blocked]
+    description: Changed only with nsk move, which checks the transition and its gate.
+  - name: priority
+    type: enum
+    values: [P0, P1, P2, P3]
+    description: Backlog order. P0 is most urgent.
+  - name: points
+    type: integer
+    values: [1, 2, 3, 5, 8, 13]
+    nullable: true
+    description: Estimate in story points. Required from ready onward. 13 means split it.
+  - name: sprint
+    type: integer
+    min: 1
+    nullable: true
+    description: Sprint number this story is committed to, set by /sprint plan. null means backlog.
+  - name: assignee
+    type: string
+    nullable: true
+    description: Who is building it. Required from in-progress onward.
+  - name: depends_on
+    type: list
+    items:
+      type: ticket-ref
+      ref: story
+    description: Stories that must be done first. /sprint plan won't commit a story ahead of them.
+  - name: blocked_reason
+    type: string
+    nullable: true
+    description: Why the story is blocked. Set only while status is blocked.
+  - name: created
+    type: date
+    description: Set by nsk new.
+  - name: updated
+    type: date
+    description: Stamped by nsk move and nsk validate --fix when the file changes.
+sections:
+  - heading: Story
+    content:
+      type: pattern
+      pattern: '^As an? .+, I want .+, so that .+\.$'
+    non_empty_in: [draft, ready, in-progress, in-qa, done, blocked]
+    no_placeholders_in: [ready, in-progress, in-qa, done]
+    guidance: 'One sentence: "As a <role>, I want <capability>, so that <benefit>."'
+  - heading: Acceptance Criteria
+    content:
+      type: list
+      min_items: 1
+      item_pattern: '^AC-\d+: Given .+, when .+, then .+\.$'
+    non_empty_in: [ready, in-progress, in-qa, done]
+    no_placeholders_in: [ready, in-progress, in-qa, done]
+    guidance: >-
+      One bullet per criterion, "AC-1: Given ..., when ..., then ...". Number
+      from 1 and never renumber. If a criterion is dropped, its number stays
+      unused, because tasks, tests and QA rows cite it.
+  - heading: Technical Notes
+    content: { type: prose }
+    no_placeholders_in: [ready, in-progress, in-qa, done]
+    guidance: Pointers into the architecture (component, AD-xxx), data changes, and edge cases.
+  - heading: Tasks
+    content:
+      type: checklist
+      item_pattern: '^.+ \((AC-\d+)(, AC-\d+)*\)$'
+    non_empty_in: [ready, in-progress, in-qa, done]
+    no_placeholders_in: [ready, in-progress, in-qa, done]
+    guidance: 'Small steps, each ending with the ACs it serves, e.g. "- [ ] Add signup endpoint (AC-1, AC-2)".'
+  - heading: Test Plan
+    content:
+      type: table
+      columns: [AC, Scenario, Level, Automated]
+      column_patterns:
+        AC: '^AC-\d+$'
+      column_values:
+        Level: [unit, integration, e2e, manual]
+        Automated: ['yes', 'no']
+    non_empty_in: [in-qa, done]
+    no_placeholders_in: [in-qa, done]
+    guidance: Written by /qa, ideally while the story is ready. At least one row per AC.
+  - heading: Dev Record
+    content:
+      type: fields
+      labels: [Branch, Files changed, Tests added, Notes]
+    non_empty_in: [in-qa, done]
+    no_placeholders_in: [in-qa, done]
+    guidance: Filled by /dev before moving to in-qa. Files and tests as nested bullets.
+  - heading: QA Record
+    content:
+      type: table
+      columns: [Round, AC, Result, Evidence]
+      column_patterns:
+        Round: '^\d+$'
+        AC: '^AC-\d+$'
+      column_values:
+        Result: [PASS, FAIL]
+    non_empty_in: [done]
+    no_placeholders_in: [done]
+    guidance: >-
+      One row per AC per QA round. Round starts at 1 and goes up each time the
+      story comes back. FAIL rows describe the defect in Evidence.

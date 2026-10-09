@@ -1,0 +1,99 @@
+kind: prd
+title: Product requirements document
+description: >-
+  What the product must do and how well, written by /prd as a senior business
+  analyst. Every requirement gets a stable ID that epics, the architecture and
+  tests refer to. Requirements are never invented: anything not confirmed by
+  the user goes under Assumptions.
+path: prd.md
+statuses:
+  values: [draft, approved]
+  transitions:
+    draft: [approved]
+    approved: [draft]
+frontmatter:
+  - name: title
+    type: string
+    description: Document title. The H1 must match it exactly.
+  - name: status
+    type: enum
+    values: [draft, approved]
+    description: approved once the owner has signed it off. Epics can't be ready before that.
+  - name: version
+    type: semver
+    description: Bumped on every approved change, with a Changelog row.
+  - name: updated
+    type: date
+    description: Date of the last change.
+sections:
+  - heading: Overview
+    content: { type: prose }
+    non_empty_in: [draft, approved]
+    no_placeholders_in: [approved]
+    guidance: What the product is, who it is for, and why now, in one or two paragraphs.
+  - heading: Goals
+    content: { type: list, min_items: 1, item_pattern: '^G-\d{2}: .+' }
+    non_empty_in: [approved]
+    no_placeholders_in: [approved]
+    guidance: 'Measurable outcomes, one per bullet, as "G-01: ...".'
+  - heading: Non-Goals
+    content: { type: list }
+    no_placeholders_in: [approved]
+    guidance: What is deliberately out of scope for this version.
+  - heading: Personas
+    content: { type: fields, min_items: 1 }
+    non_empty_in: [approved]
+    no_placeholders_in: [approved]
+    guidance: 'One bullet per persona as "**Name:** who they are and what they need".'
+  - heading: Functional Requirements
+    content:
+      type: table
+      columns: [ID, Requirement, Priority, Source]
+      id_column: ID
+      id_pattern: '^FR-\d{3}$'
+      column_values:
+        Priority: [P0, P1, P2, P3]
+      min_rows: 1
+    non_empty_in: [approved]
+    no_placeholders_in: [approved]
+    guidance: >-
+      One row per requirement, phrased as "The system shall ...". Source names
+      where it came from: a brief section, a stakeholder, or a regulation.
+  - heading: Non-Functional Requirements
+    content:
+      type: table
+      columns: [ID, Category, Requirement, Target]
+      id_column: ID
+      id_pattern: '^NFR-\d{3}$'
+      column_values:
+        Category: [performance, reliability, security, privacy, accessibility, usability, scalability, maintainability, compliance, operability]
+    no_placeholders_in: [approved]
+    guidance: Every row needs a measurable Target, such as "p95 < 300 ms".
+  - heading: Assumptions
+    content: { type: list }
+    no_placeholders_in: [approved]
+    guidance: Anything treated as true that the user hasn't confirmed.
+  - heading: Risks
+    content:
+      type: table
+      columns: [ID, Risk, Likelihood, Impact, Mitigation]
+      id_column: ID
+      id_pattern: '^R-\d{3}$'
+      column_values:
+        Likelihood: [low, medium, high]
+        Impact: [low, medium, high]
+    no_placeholders_in: [approved]
+    guidance: Product and delivery risks, each with a mitigation.
+  - heading: Open Questions
+    content: { type: list, item_pattern: '^Q-\d{2}: .+' }
+    empty_in: [approved]
+    guidance: 'Unresolved questions as "Q-01: ...". Must be empty before approval.'
+  - heading: Changelog
+    content:
+      type: table
+      columns: [Version, Date, Change]
+      id_column: Version
+      id_pattern: '^\d+\.\d+\.\d+$'
+      min_rows: 1
+    non_empty_in: [draft, approved]
+    guidance: Newest first. The top row's version must equal the frontmatter version.

@@ -1,0 +1,104 @@
+kind: architecture
+title: Architecture
+description: >-
+  How the system is built to meet the PRD, written by /architecture as a
+  principal architect. Major choices are recorded as decisions with their
+  trade-offs, and every non-functional requirement is mapped to how it is met
+  and verified.
+path: architecture.md
+statuses:
+  values: [draft, approved]
+  transitions:
+    draft: [approved]
+    approved: [draft]
+frontmatter:
+  - name: title
+    type: string
+    description: Document title. The H1 must match it exactly.
+  - name: status
+    type: enum
+    values: [draft, approved]
+    description: approved once signed off. Stories can't be ready before that.
+  - name: version
+    type: semver
+    description: Bumped on every approved change, with a Changelog row.
+  - name: updated
+    type: date
+    description: Date of the last change.
+sections:
+  - heading: Context
+    content: { type: prose }
+    non_empty_in: [draft, approved]
+    no_placeholders_in: [approved]
+    guidance: The system's boundary, its users, and the external systems it talks to.
+  - heading: Tech Stack
+    content:
+      type: table
+      columns: [Layer, Choice, Version, Rationale]
+      min_rows: 1
+    non_empty_in: [approved]
+    no_placeholders_in: [approved]
+    guidance: One row per layer. Version is a pinned major or exact version.
+  - heading: Components
+    content:
+      type: table
+      columns: [Component, Responsibility, Depends On]
+      id_column: Component
+      min_rows: 1
+    non_empty_in: [approved]
+    no_placeholders_in: [approved]
+    guidance: Deployable units and major modules. Depends On lists other components or "-".
+  - heading: Data Model
+    content: { type: prose }
+    non_empty_in: [approved]
+    no_placeholders_in: [approved]
+    guidance: Core entities, their key fields and relationships. A mermaid erDiagram is welcome.
+  - heading: Interfaces
+    content: { type: prose }
+    non_empty_in: [approved]
+    no_placeholders_in: [approved]
+    guidance: Public APIs, events and integrations, with their style and versioning rules.
+  - heading: Decisions
+    content:
+      type: entries
+      heading_pattern: '^AD-\d{3}: .+'
+      labels: [Status, Context, Options, Decision, Consequences]
+      min_entries: 1
+    non_empty_in: [approved]
+    no_placeholders_in: [approved]
+    guidance: >-
+      One H3 per decision, "### AD-001: Short title". Status is accepted or
+      superseded by AD-xxx. Options lists the alternatives considered.
+  - heading: NFR Mapping
+    content:
+      type: table
+      columns: [NFR, Approach, Verification]
+      id_column: NFR
+      id_pattern: '^NFR-\d{3}$'
+    no_placeholders_in: [approved]
+    guidance: One row per NFR in the PRD. Verification says how a test or metric proves it.
+  - heading: Deployment
+    content: { type: prose }
+    non_empty_in: [approved]
+    no_placeholders_in: [approved]
+    guidance: Environments, hosting, CI/CD, and how a release reaches production.
+  - heading: Risks
+    content:
+      type: table
+      columns: [ID, Risk, Likelihood, Impact, Mitigation]
+      id_column: ID
+      id_pattern: '^TR-\d{3}$'
+      column_values:
+        Likelihood: [low, medium, high]
+        Impact: [low, medium, high]
+    no_placeholders_in: [approved]
+    guidance: Technical risks, each with a mitigation.
+  - heading: Changelog
+    content:
+      type: table
+      columns: [Version, Date, Change]
+      id_column: Version
+      id_pattern: '^\d+\.\d+\.\d+$'
+      min_rows: 1
+    non_empty_in: [draft, approved]
+    guidance: Newest first. The top row's version must equal the frontmatter version.

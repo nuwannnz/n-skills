@@ -1,0 +1,25 @@
+# Where each agent reads project-level skills from. nsk install copies
+# skills/<name>/ into <skills_dir>/<name>/ for every agent listed in nsk.yaml.
+# verified: false until the path has been checked against the agent's current
+# documentation (plan phase 4).
+agents:
+  - id: claude
+    name: Claude Code
+    skills_dir: .claude/skills
+    verified: false
+  - id: codex
+    name: Codex
+    skills_dir: .agents/skills
+    verified: false
+  - id: cursor
+    name: Cursor
+    skills_dir: .cursor/skills
+    verified: false
+  - id: gemini
+    name: Gemini CLI
+    skills_dir: .gemini/skills
+    verified: false
+  - id: copilot
+    name: GitHub Copilot
+    skills_dir: .github/skills
+    verified: false

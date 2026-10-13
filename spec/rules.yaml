@@ -166,7 +166,7 @@ rules:
   - code: NSK510
     severity: error
     fixable: false
-    summary: Sprint numbers aren't 1, 2, 3, ... in order, or a sprint section has no matching frontmatter entry.
+    summary: Sprint numbers aren't 1, 2, 3, ... in order, or a sprint section and its frontmatter entry don't match up.
 
   # Status gates
   - code: NSK601

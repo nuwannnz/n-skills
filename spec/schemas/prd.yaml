@@ -97,3 +97,7 @@ sections:
       min_rows: 1
     non_empty_in: [draft, approved]
     guidance: Newest first. The top row's version must equal the frontmatter version.
+    template: |-
+      | Version | Date | Change |
+      | --- | --- | --- |
+      | {version} | {date} | Initial draft. |

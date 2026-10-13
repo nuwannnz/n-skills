@@ -64,6 +64,7 @@ and unknown H2 headings are errors.
 | `no_placeholders_in` | Statuses in which `TODO`, `TBD`, `???`, and `<...>` placeholders are errors. |
 | `subsections` | H3 sections inside this section, same format as `sections`. |
 | `guidance` | What to write, shown by `nsk schema` and inserted by `nsk new` as a comment. |
+| `template` | Body `nsk new` writes for the section, with `{date}`, `{version}`, and `{title}` filled in. Needed where an empty body or `TODO` would fail the schema in a draft. |
 
 A section is empty when its body holds nothing but whitespace and HTML
 comments.

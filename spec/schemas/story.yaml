@@ -71,6 +71,7 @@ sections:
     non_empty_in: [draft, ready, in-progress, in-qa, done, blocked]
     no_placeholders_in: [ready, in-progress, in-qa, done]
     guidance: 'One sentence: "As a <role>, I want <capability>, so that <benefit>."'
+    template: As a <role>, I want <capability>, so that <benefit>.
   - heading: Acceptance Criteria
     content:
       type: list

@@ -2,7 +2,7 @@ kind: story
 title: Story
 description: >-
   One user-visible change small enough for a single sprint, written by
-  /n-stories, built by /n-dev, and verified by /n-qa. Acceptance criteria are the
+  /scrumo-stories, built by /scrumo-dev, and verified by /scrumo-qa. Acceptance criteria are the
   spec: tasks, tests and the QA record all cite their AC IDs.
 path: stories/{key}-{n}-{slug}.md
 statuses:
@@ -17,7 +17,7 @@ statuses:
 frontmatter:
   - name: id
     type: ticket-id
-    description: Assigned by nsk new. Must match the file name.
+    description: Assigned by scrumo new. Must match the file name.
   - name: title
     type: string
     description: Short, user-facing name. The H1 must match it exactly.
@@ -28,7 +28,7 @@ frontmatter:
   - name: status
     type: enum
     values: [draft, ready, in-progress, in-qa, done, blocked]
-    description: Changed only with nsk move, which checks the transition and its gate.
+    description: Changed only with scrumo move, which checks the transition and its gate.
   - name: priority
     type: enum
     values: [P0, P1, P2, P3]
@@ -42,7 +42,7 @@ frontmatter:
     type: integer
     min: 1
     nullable: true
-    description: Sprint number this story is committed to, set by /n-sprint plan. null means backlog.
+    description: Sprint number this story is committed to, set by /scrumo-sprint plan. null means backlog.
   - name: assignee
     type: string
     nullable: true
@@ -52,17 +52,17 @@ frontmatter:
     items:
       type: ticket-ref
       ref: story
-    description: Stories that must be done first. /n-sprint plan won't commit a story ahead of them.
+    description: Stories that must be done first. /scrumo-sprint plan won't commit a story ahead of them.
   - name: blocked_reason
     type: string
     nullable: true
     description: Why the story is blocked. Set only while status is blocked.
   - name: created
     type: date
-    description: Set by nsk new.
+    description: Set by scrumo new.
   - name: updated
     type: date
-    description: Stamped by nsk move and nsk validate --fix when the file changes.
+    description: Stamped by scrumo move and scrumo validate --fix when the file changes.
 sections:
   - heading: Story
     content:
@@ -105,14 +105,14 @@ sections:
         Automated: ['yes', 'no']
     non_empty_in: [in-qa, done]
     no_placeholders_in: [in-qa, done]
-    guidance: Written by /n-qa, ideally while the story is ready. At least one row per AC.
+    guidance: Written by /scrumo-qa, ideally while the story is ready. At least one row per AC.
   - heading: Dev Record
     content:
       type: fields
       labels: [Branch, Files changed, Tests added, Notes]
     non_empty_in: [in-qa, done]
     no_placeholders_in: [in-qa, done]
-    guidance: Filled by /n-dev before moving to in-qa. Files and tests as nested bullets.
+    guidance: Filled by /scrumo-dev before moving to in-qa. Files and tests as nested bullets.
   - heading: QA Record
     content:
       type: table

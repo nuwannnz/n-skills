@@ -11,7 +11,7 @@ import type { FieldDef, Schema, SectionDef } from '../../src/spec/types.ts';
 
 const spec = loadSpec();
 const SAMPLE = new URL('../../examples/sample-project/', import.meta.url).pathname;
-const config = parse(readFileSync(join(SAMPLE, 'nsk.yaml'), 'utf8')) as { project: { key: string }; docs_dir: string };
+const config = parse(readFileSync(join(SAMPLE, 'scrumo.yaml'), 'utf8')) as { project: { key: string }; docs_dir: string };
 const KEY = config.project.key;
 const DOCS = join(SAMPLE, config.docs_dir);
 
@@ -111,7 +111,7 @@ function body(lines: string[], from: number, to: number): string[] {
   return lines
     .slice(from + 1, to)
     .join('\n')
-    .replace(/<!--(?!\s*nsk:)[\s\S]*?-->/g, '')
+    .replace(/<!--(?!\s*scrumo:)[\s\S]*?-->/g, '')
     .split('\n')
     .filter((line) => line.trim() !== '');
 }
@@ -168,8 +168,8 @@ function checkContent(where: string, section: SectionDef, content: string[]): vo
       break;
     }
     case 'generated':
-      assert.equal(content[0], `<!-- nsk:generated:${spec.block} -->`, `${where}: generated start marker`);
-      assert.equal(content.at(-1), '<!-- nsk:end -->', `${where}: generated end marker`);
+      assert.equal(content[0], `<!-- scrumo:generated:${spec.block} -->`, `${where}: generated start marker`);
+      assert.equal(content.at(-1), '<!-- scrumo:end -->', `${where}: generated end marker`);
       break;
   }
 }
@@ -218,8 +218,8 @@ describe('spec', () => {
     assert.deepEqual([...spec.schemas.keys()].sort(), ['architecture', 'brief', 'config', 'epic', 'prd', 'sprint-tracker', 'standards', 'story']);
   });
 
-  it('nsk.yaml follows the config schema', () => {
-    checkObject('nsk.yaml', schema('config').frontmatter, config);
+  it('scrumo.yaml follows the config schema', () => {
+    checkObject('scrumo.yaml', schema('config').frontmatter, config);
   });
 
   for (const file of walk(DOCS).sort()) {

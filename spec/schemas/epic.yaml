@@ -2,7 +2,7 @@ kind: epic
 title: Epic
 description: >-
   A slice of user value that covers one or more PRD requirements, written by
-  /n-epics as a product owner. Epics are tickets: they share the project's
+  /scrumo-epics as a product owner. Epics are tickets: they share the project's
   number sequence with stories.
 path: epics/{key}-{n}-{slug}.md
 statuses:
@@ -15,7 +15,7 @@ statuses:
 frontmatter:
   - name: id
     type: ticket-id
-    description: Assigned by nsk new. Must match the file name.
+    description: Assigned by scrumo new. Must match the file name.
   - name: title
     type: string
     description: Short outcome-focused name. The H1 must match it exactly.
@@ -37,7 +37,7 @@ frontmatter:
     description: PRD functional requirements this epic delivers. Every FR should belong to some epic.
   - name: created
     type: date
-    description: Set by nsk new.
+    description: Set by scrumo new.
   - name: updated
     type: date
     description: Date of the last change.

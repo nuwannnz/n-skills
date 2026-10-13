@@ -1,4 +1,4 @@
-// NSK5xx: references between documents.
+// SCRUMO5xx: references between documents.
 import { findBody, listItems, tableRecords, type Doc } from './doc.ts';
 import { sprintsOf, stories } from './generate.ts';
 import type { Project, Report } from './types.ts';
@@ -40,20 +40,20 @@ export function checkRefs(project: Project, report: Report): void {
       const ref = (value: unknown, kind: 'epic' | 'story', field: string) => {
         if (typeof value !== 'string' || !ID.test(value)) return;
         const target = tickets.get(value);
-        if (!target) report('NSK502', doc.file, `${field} ${value} doesn't exist`);
-        else if (target.kind !== kind) report('NSK502', doc.file, `${field} ${value} is a ${target.kind}, not a ${kind}`);
+        if (!target) report('SCRUMO502', doc.file, `${field} ${value} doesn't exist`);
+        else if (target.kind !== kind) report('SCRUMO502', doc.file, `${field} ${value} is a ${target.kind}, not a ${kind}`);
       };
       ref(fm.epic, 'epic', 'epic');
       if (Array.isArray(fm.depends_on)) fm.depends_on.forEach((id) => ref(id, 'story', 'depends_on'));
-      if (typeof fm.sprint === 'number' && !sprintNumbers.has(fm.sprint)) report('NSK505', doc.file, `sprint ${fm.sprint} isn't in the sprint tracker`);
+      if (typeof fm.sprint === 'number' && !sprintNumbers.has(fm.sprint)) report('SCRUMO505', doc.file, `sprint ${fm.sprint} isn't in the sprint tracker`);
 
       const defined = new Set(acIds(doc));
       const duplicates = listItems(findBody(doc, 'Acceptance Criteria') ?? []).items.map((item) => /^(AC-\d+):/.exec(item)?.[1]).filter((id, i, all) => id && all.indexOf(id) !== i);
-      for (const id of new Set(duplicates)) report('NSK507', doc.file, `${id} is defined more than once in Acceptance Criteria`);
+      for (const id of new Set(duplicates)) report('SCRUMO507', doc.file, `${id} is defined more than once in Acceptance Criteria`);
       for (const heading of ['Tasks', 'Test Plan', 'QA Record']) {
         const body = findBody(doc, heading);
         for (const id of new Set(cited((body ?? []).join('\n')))) {
-          if (!defined.has(id)) report('NSK507', doc.file, `${heading} cites ${id}, which Acceptance Criteria doesn't define`);
+          if (!defined.has(id)) report('SCRUMO507', doc.file, `${heading} cites ${id}, which Acceptance Criteria doesn't define`);
         }
       }
     }
@@ -61,25 +61,25 @@ export function checkRefs(project: Project, report: Report): void {
       const requirements = Array.isArray(fm.requirements) ? fm.requirements.filter((r): r is string => typeof r === 'string') : [];
       for (const fr of requirements) {
         coveredFrs.add(fr);
-        if (frs && !frs.has(fr)) report('NSK503', doc.file, `${fr} isn't defined in the PRD`);
+        if (frs && !frs.has(fr)) report('SCRUMO503', doc.file, `${fr} isn't defined in the PRD`);
       }
       const coverage = tableRecords(findBody(doc, 'Requirements Coverage')).map((row) => row.Requirement ?? '');
       if (findBody(doc, 'Requirements Coverage')?.length && [...coverage].sort().join() !== [...requirements].sort().join()) {
-        report('NSK509', doc.file, `Requirements Coverage rows (${coverage.join(', ') || 'none'}) differ from frontmatter requirements (${requirements.join(', ') || 'none'})`);
+        report('SCRUMO509', doc.file, `Requirements Coverage rows (${coverage.join(', ') || 'none'}) differ from frontmatter requirements (${requirements.join(', ') || 'none'})`);
       }
     }
     if (doc.kind === 'architecture') {
       const mapped = tableRecords(findBody(doc, 'NFR Mapping')).map((row) => row.NFR ?? '');
       if (nfrs) {
-        for (const id of mapped) if (!nfrs.has(id)) report('NSK508', doc.file, `NFR Mapping cites ${id}, which the PRD doesn't define`);
+        for (const id of mapped) if (!nfrs.has(id)) report('SCRUMO508', doc.file, `NFR Mapping cites ${id}, which the PRD doesn't define`);
         if (fm.status === 'approved') {
-          for (const id of nfrs) if (!mapped.includes(id)) report('NSK508', doc.file, `${id} is in the PRD but not in NFR Mapping`);
+          for (const id of nfrs) if (!mapped.includes(id)) report('SCRUMO508', doc.file, `${id} is in the PRD but not in NFR Mapping`);
         }
       }
     }
   }
   if (prd && frs) {
-    for (const fr of frs) if (!coveredFrs.has(fr)) report('NSK504', prd.file, `${fr} isn't covered by any epic`);
+    for (const fr of frs) if (!coveredFrs.has(fr)) report('SCRUMO504', prd.file, `${fr} isn't covered by any epic`);
   }
 
   // dependency cycles
@@ -93,7 +93,7 @@ export function checkRefs(project: Project, report: Report): void {
       const key = [...cycle.slice(0, -1)].sort().join();
       if (!reported.has(key)) {
         reported.add(key);
-        report('NSK506', project.tickets.get(id)!.file, `dependency cycle: ${cycle.join(' -> ')}`);
+        report('SCRUMO506', project.tickets.get(id)!.file, `dependency cycle: ${cycle.join(' -> ')}`);
       }
       return;
     }
@@ -106,9 +106,9 @@ export function checkRefs(project: Project, report: Report): void {
   // sprint numbering
   if (tracker?.fm) {
     const numbers = sprintsOf(tracker).map((s) => s.number);
-    if (numbers.some((n, i) => n !== i + 1)) report('NSK510', tracker.file, `sprint numbers must be 1, 2, 3, ... in order, got ${numbers.join(', ') || 'none'}`);
+    if (numbers.some((n, i) => n !== i + 1)) report('SCRUMO510', tracker.file, `sprint numbers must be 1, 2, 3, ... in order, got ${numbers.join(', ') || 'none'}`);
     const sections = [...tracker.headings.filter((h) => h.level === 2)].map((h) => /^Sprint (\d+)$/.exec(h.text)?.[1]).filter((n): n is string => n !== undefined);
-    for (const n of sections) if (!numbers.includes(Number(n))) report('NSK510', tracker.file, `section "Sprint ${n}" has no matching sprint in the frontmatter`);
-    for (const n of numbers) if (!sections.includes(String(n))) report('NSK510', tracker.file, `sprint ${n} has no "## Sprint ${n}" section`);
+    for (const n of sections) if (!numbers.includes(Number(n))) report('SCRUMO510', tracker.file, `section "Sprint ${n}" has no matching sprint in the frontmatter`);
+    for (const n of numbers) if (!sections.includes(String(n))) report('SCRUMO510', tracker.file, `sprint ${n} has no "## Sprint ${n}" section`);
   }
 }

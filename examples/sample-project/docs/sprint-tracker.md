@@ -24,31 +24,31 @@ sprints:
 
 ## Overview
 
-<!-- nsk:generated:overview -->
+<!-- scrumo:generated:overview -->
 
 | Sprint | Status | Start | End | Goal | Capacity | Committed | Completed |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 2 | active | 2026-09-28 | 2026-10-09 | Owners can book their first appointment online. | 12 | 10 | - |
 | 1 | closed | 2026-09-14 | 2026-09-25 | Owners can create an account and log in. | 8 | 6 | 6 |
 
-<!-- nsk:end -->
+<!-- scrumo:end -->
 
 ## Backlog
 
-<!-- nsk:generated:backlog -->
+<!-- scrumo:generated:backlog -->
 
 | ID | Title | Epic | Priority | Points | Status |
 | --- | --- | --- | --- | --- | --- |
 | PAW-9 | Cancel an appointment | PAW-2 | P1 | 2 | blocked |
 | PAW-10 | Get a reminder before an appointment | PAW-2 | P2 | - | draft |
 
-<!-- nsk:end -->
+<!-- scrumo:end -->
 
 ## Sprint 2
 
 ### Stories
 
-<!-- nsk:generated:sprint-2 -->
+<!-- scrumo:generated:sprint-2 -->
 
 | ID | Title | Epic | Points | Status | Assignee |
 | --- | --- | --- | --- | --- | --- |
@@ -56,28 +56,28 @@ sprints:
 | PAW-7 | See open appointment slots | PAW-2 | 5 | in-progress | alex |
 | PAW-8 | Book an appointment | PAW-2 | 3 | ready | - |
 
-<!-- nsk:end -->
+<!-- scrumo:end -->
 
 ### Review
 
-<!-- Filled at /n-sprint close. -->
+<!-- Filled at /scrumo-sprint close. -->
 
 ### Retro
 
-<!-- Filled at /n-sprint close. -->
+<!-- Filled at /scrumo-sprint close. -->
 
 ## Sprint 1
 
 ### Stories
 
-<!-- nsk:generated:sprint-1 -->
+<!-- scrumo:generated:sprint-1 -->
 
 | ID | Title | Epic | Points | Status | Assignee |
 | --- | --- | --- | --- | --- | --- |
 | PAW-4 | Sign up with email | PAW-1 | 3 | done | alex |
 | PAW-5 | Log in and log out | PAW-1 | 3 | done | sam |
 
-<!-- nsk:end -->
+<!-- scrumo:end -->
 
 ### Review
 

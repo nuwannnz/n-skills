@@ -35,7 +35,7 @@ belongs to a known person and their pets.
 
 ## Stories
 
-<!-- nsk:generated:epic-stories -->
+<!-- scrumo:generated:epic-stories -->
 
 | ID | Title | Status | Points | Sprint |
 | --- | --- | --- | --- | --- |
@@ -43,7 +43,7 @@ belongs to a known person and their pets.
 | PAW-5 | Log in and log out | done | 3 | 1 |
 | PAW-6 | Reset a forgotten password | in-qa | 2 | 2 |
 
-<!-- nsk:end -->
+<!-- scrumo:end -->
 
 ## Risks
 

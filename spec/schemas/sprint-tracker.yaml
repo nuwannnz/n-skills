@@ -1,7 +1,7 @@
 kind: sprint-tracker
 title: Sprint tracker
 description: >-
-  The team board, maintained by /n-sprint as a scrum master. Sprint facts live
+  The team board, maintained by /scrumo-sprint as a scrum master. Sprint facts live
   in the frontmatter. The body lists every sprint with its stories and their
   current status, plus the backlog that sprint planning pulls from; those
   tables are generated from story frontmatter and must never be edited by
@@ -28,7 +28,7 @@ frontmatter:
         - name: status
           type: enum
           values: [planned, active, closed]
-          description: planned → active (/n-sprint start) → closed (/n-sprint close).
+          description: planned → active (/scrumo-sprint start) → closed (/scrumo-sprint close).
         - name: goal
           type: string
           description: The one outcome the sprint commits to.
@@ -46,19 +46,19 @@ frontmatter:
           type: integer
           min: 0
           nullable: true
-          description: Points committed when the sprint started. Set by /n-sprint start.
+          description: Points committed when the sprint started. Set by /scrumo-sprint start.
         - name: completed
           type: integer
           min: 0
           nullable: true
-          description: Points done when the sprint closed (its velocity). Set by /n-sprint close.
+          description: Points done when the sprint closed (its velocity). Set by /scrumo-sprint close.
 sections:
   - heading: Overview
     content: { type: generated, block: overview }
     guidance: Generated. One row per sprint with dates, goal, capacity, committed and completed points.
   - heading: Backlog
     content: { type: generated, block: backlog }
-    guidance: Generated. Every story without a sprint, by priority. /n-sprint plan pulls ready stories from the top.
+    guidance: Generated. Every story without a sprint, by priority. /scrumo-sprint plan pulls ready stories from the top.
   - heading_pattern: '^Sprint (\d+)$'
     repeat: true
     optional: true
@@ -71,11 +71,11 @@ sections:
         content: { type: list }
         non_empty_in: [closed]
         no_placeholders_in: [closed]
-        guidance: Filled at /n-sprint close. What was demoed, what was accepted, and what carried over.
+        guidance: Filled at /scrumo-sprint close. What was demoed, what was accepted, and what carried over.
       - heading: Retro
         content:
           type: fields
           labels: [Went well, To improve, Actions]
         non_empty_in: [closed]
         no_placeholders_in: [closed]
-        guidance: Filled at /n-sprint close. Actions name an owner.
+        guidance: Filled at /scrumo-sprint close. Actions name an owner.

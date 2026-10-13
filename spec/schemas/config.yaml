@@ -1,18 +1,18 @@
 kind: config
 title: Project config
 description: >-
-  The project's nsk configuration, stored as nsk.yaml at the repository root.
+  The project's scrumo configuration, stored as scrumo.yaml at the repository root.
   It names the project, holds the ticket key, and says where the managed docs
   live and which agents have skills installed.
-path: ../nsk.yaml
+path: ../scrumo.yaml
 frontmatter:
   - name: schema_version
     type: integer
     fixed: 1
     description: Version of this spec the project follows.
-  - name: nsk_version
+  - name: cli_version
     type: semver
-    description: Version of nsk that last installed or updated the skills.
+    description: Version of scrumo that last installed or updated the skills.
   - name: project
     type: object
     fields:
@@ -23,7 +23,7 @@ frontmatter:
         type: string
         pattern: '^[A-Z][A-Z0-9]{1,9}$'
         description: >-
-          Ticket key, asked for during /n-kickoff. 2 to 10 uppercase letters or
+          Ticket key, asked for during /scrumo-kickoff. 2 to 10 uppercase letters or
           digits, starting with a letter. Never changes once tickets exist.
   - name: docs_dir
     type: string
@@ -46,7 +46,13 @@ frontmatter:
     items:
       type: enum
       values: [claude, codex, cursor, gemini, copilot]
-    description: Agents whose skills directories nsk install and nsk update manage.
+    description: Agents whose skills directories scrumo install and scrumo update manage.
+  - name: skill_prefix
+    type: string
+    pattern: '^[a-z][a-z0-9-]*-$'
+    description: >-
+      Prefix on every installed skill's name, such as scrumo- for /scrumo-prd. It must
+      end with a hyphen. Changing it and running scrumo update renames the skills.
   - name: ignore
     type: list
     items:

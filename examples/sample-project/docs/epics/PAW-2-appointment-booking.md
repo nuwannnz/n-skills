@@ -38,7 +38,7 @@ get reminded the day before, without phoning the clinic.
 
 ## Stories
 
-<!-- nsk:generated:epic-stories -->
+<!-- scrumo:generated:epic-stories -->
 
 | ID | Title | Status | Points | Sprint |
 | --- | --- | --- | --- | --- |
@@ -47,7 +47,7 @@ get reminded the day before, without phoning the clinic.
 | PAW-9 | Cancel an appointment | blocked | 2 | - |
 | PAW-10 | Get a reminder before an appointment | draft | - | - |
 
-<!-- nsk:end -->
+<!-- scrumo:end -->
 
 ## Risks
 

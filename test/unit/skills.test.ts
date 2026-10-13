@@ -1,5 +1,5 @@
 // The skills under skills/ keep one skeleton, point only at things that exist,
-// and call only nsk commands that exist (plan section 6).
+// and call only scrumo commands that exist (plan section 6).
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
 import { describe, it } from 'node:test';
@@ -8,9 +8,9 @@ import { loadSpec } from '../../src/spec/load.ts';
 
 const DIR = new URL('../../skills/', import.meta.url).pathname;
 const spec = loadSpec();
-const EXPECTED = ['validate', 'kickoff', 'prd', 'architecture', 'standards', 'epics', 'stories', 'sprint', 'dev', 'qa'].map((name) => `n-${name}`);
-const SECTIONS = ['Role', 'When to use', 'Inputs', 'Outputs', 'Procedure', 'Quality bar', 'Hand-off', 'Exit: validate'];
-const COMMANDS = ['validate', 'schema', 'new', 'move', 'status', 'sprint', '--version'];
+const EXPECTED = ['validate', 'kickoff', 'prd', 'architecture', 'standards', 'epics', 'stories', 'sprint', 'dev', 'qa'].map((name) => `scrumo-${name}`);
+const SECTIONS = ['Role', 'When to use', 'Inputs', 'Outputs', 'Prerequisite: the scrumo CLI', 'Procedure', 'Quality bar', 'Hand-off', 'Exit: validate'];
+const COMMANDS = ['init', 'validate', 'schema', 'new', 'move', 'status', 'sprint', '--version'];
 const NEW_TYPES = ['brief', 'prd', 'architecture', 'standards', 'tracker', 'epic', 'story'];
 const STATUSES = new Set([...spec.schemas.values()].flatMap((s) => s.statuses?.values ?? []));
 
@@ -24,7 +24,7 @@ function split(text: string): { fm: Record<string, unknown>; body: string } {
 }
 
 describe('skills', () => {
-  it('has exactly the planned skills, each with the n- prefix', () => {
+  it('has exactly the planned skills, each with the scrumo- prefix', () => {
     assert.deepEqual(skills, [...EXPECTED].sort());
   });
 
@@ -48,16 +48,16 @@ describe('skills', () => {
         assert.ok(text.split('\n').length <= 150, 'SKILL.md is over 150 lines');
       });
 
-      it('references only skills and nsk commands that exist', () => {
-        for (const [, other] of text.matchAll(/\/(n-[a-z]+)\b/g)) assert.ok(skills.includes(other!), `unknown skill /${other}`);
-        for (const [, command] of text.matchAll(/npx nsk ([\w-]+)/g)) assert.ok(COMMANDS.includes(command!), `unknown command nsk ${command}`);
-        for (const [, kind] of text.matchAll(/nsk schema (\S+)/g)) {
+      it('references only skills and scrumo commands that exist', () => {
+        for (const [, other] of text.matchAll(/\/(scrumo-[a-z]+)\b/g)) assert.ok(skills.includes(other!), `unknown skill /${other}`);
+        for (const [, command] of text.matchAll(/npx scrumo ([\w-]+)/g)) assert.ok(COMMANDS.includes(command!), `unknown command scrumo ${command}`);
+        for (const [, kind] of text.matchAll(/scrumo schema (\S+)/g)) {
           const clean = kind!.replace(/[`.,]/g, '');
           assert.ok(clean === 'rules' || clean === '<kind>' || clean === 'tracker' || spec.schemas.has(clean), `unknown schema ${clean}`);
         }
-        for (const [, sub] of text.matchAll(/nsk sprint (\w+)/g)) assert.ok(['plan', 'start', 'close'].includes(sub!), `unknown nsk sprint ${sub}`);
-        for (const [, type] of text.matchAll(/nsk new (\S+)/g)) assert.ok(NEW_TYPES.includes(type!.replace(/[`.,]/g, '')), `unknown nsk new type ${type}`);
-        for (const [, status] of text.matchAll(/nsk move (?:<[^>]+>|\S+) (\S+)/g)) assert.ok(STATUSES.has(status!.replace(/[`.,]/g, '')), `unknown status ${status}`);
+        for (const [, sub] of text.matchAll(/scrumo sprint (\w+)/g)) assert.ok(['plan', 'start', 'close'].includes(sub!), `unknown scrumo sprint ${sub}`);
+        for (const [, type] of text.matchAll(/scrumo new (\S+)/g)) assert.ok(NEW_TYPES.includes(type!.replace(/[`.,]/g, '')), `unknown scrumo new type ${type}`);
+        for (const [, status] of text.matchAll(/scrumo move (?:<[^>]+>|\S+) (\S+)/g)) assert.ok(STATUSES.has(status!.replace(/[`.,]/g, '')), `unknown status ${status}`);
       });
     });
   }
@@ -65,5 +65,13 @@ describe('skills', () => {
   it('shares one identical Exit: validate section', () => {
     const exits = new Set(skills.map((name) => split(read(name)).body.split('## Exit: validate')[1]!.trim()));
     assert.equal(exits.size, 1);
+  });
+
+  it('shares one identical prerequisite that never tells an agent to npx a missing CLI', () => {
+    const sections = new Set(skills.map((name) => /## Prerequisite: the scrumo CLI\n([\s\S]*?)\n## /.exec(read(name))![1]!.trim()));
+    assert.equal(sections.size, 1);
+    const [section] = [...sections];
+    assert.match(section!, /node_modules\/\.bin\/scrumo/);
+    assert.match(section!, /do not run `npx scrumo`/);
   });
 });

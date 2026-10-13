@@ -1,4 +1,4 @@
-// nsk schema <type>: prints a spec for an agent (or person) to read.
+// scrumo schema <type>: prints a spec for an agent (or person) to read.
 import { loadSpec } from '../spec/load.ts';
 import type { Content, FieldDef, Schema, SectionDef } from '../spec/types.ts';
 
@@ -43,7 +43,7 @@ function contentRule(c: Content | undefined): string {
     }
     case 'fields': return `"- **Label:** value" list${c.labels ? ` with labels ${c.labels.join(', ')} in that order` : ''}${c.min_items ? `, at least ${c.min_items}` : ''}`;
     case 'entries': return `"###" entries titled ${c.heading_pattern}, each a "- **Label:** value" list with labels ${c.labels.join(', ')}${c.min_entries ? `; at least ${c.min_entries}` : ''}`;
-    case 'generated': return `generated block "${c.block}" between <!-- nsk:generated:${c.block} --> and <!-- nsk:end -->; never edit by hand`;
+    case 'generated': return `generated block "${c.block}" between <!-- scrumo:generated:${c.block} --> and <!-- scrumo:end -->; never edit by hand`;
   }
 }
 
@@ -81,7 +81,7 @@ export function schemaCommand(args: string[], json: boolean): { code: number; ou
     return { code: 0, out: `${out}\n` };
   }
   if (!name) {
-    return { code: 0, out: `Usage: nsk schema <type>\nTypes: ${[...spec.schemas.keys()].join(', ')}, rules\n` };
+    return { code: 0, out: `Usage: scrumo schema <type>\nTypes: ${[...spec.schemas.keys()].join(', ')}, rules\n` };
   }
   const schema = spec.schemas.get(resolveKind(name));
   if (!schema) return { code: 2, out: `Unknown type "${name}". Types: ${[...spec.schemas.keys()].join(', ')}, rules\n` };

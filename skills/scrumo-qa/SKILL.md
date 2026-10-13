@@ -1,5 +1,5 @@
 ---
-name: n-qa
+name: scrumo-qa
 description: QA engineer. Write a story's Test Plan, verify every acceptance criterion with evidence, record each round in the QA Record, and either pass the story to done or fail it back to in-progress with the defects. Use to plan tests for a ready story or to verify a story in QA.
 ---
 
@@ -24,6 +24,15 @@ Definition of Done), and the running code and tests.
 
 The story's Test Plan and QA Record, and any missing tests.
 
+## Prerequisite: the scrumo CLI
+
+Commands below are `npx scrumo ...`. Before the first one, check the CLI is
+installed in this project: `ls node_modules/.bin/scrumo` (or `scrumo --version` if it
+is installed globally). If it is missing, do not run `npx scrumo`: without a local
+copy, npx would download whatever package the registry serves under that name.
+Tell the user to install it, using the command in the "Spec-driven workflow"
+block of AGENTS.md (otherwise ask for the package name), and wait.
+
 ## Procedure
 
 Plan:
@@ -47,8 +56,8 @@ Verify:
    Write `\|` for any `|` inside a cell, or the table breaks.
 5. Check the Definition of Done too. A failed item is a FAIL against the
    closest AC, or a note for the user if no AC fits.
-6. Every AC PASS: run `npx nsk move <ID> done`. Any FAIL: run
-   `npx nsk move <ID> in-progress` and tell the user to run `/n-dev`.
+6. Every AC PASS: run `npx scrumo move <ID> done`. Any FAIL: run
+   `npx scrumo move <ID> in-progress` and tell the user to run `/scrumo-dev`.
 
 ## Quality bar
 
@@ -58,9 +67,9 @@ Verify:
 
 ## Hand-off
 
-PASS: nothing more for this story. FAIL: `/n-dev` to rework it. When all stories
-in the sprint are done: `/n-sprint close`.
+PASS: nothing more for this story. FAIL: `/scrumo-dev` to rework it. When all stories
+in the sprint are done: `/scrumo-sprint close`.
 
 ## Exit: validate
 
-Run `npx nsk validate --fix`. Fix every error it still reports (if one is unclear, follow `/n-validate`), run it again, and repeat until it exits clean. Stop after 5 rounds and report what is left. Warnings don't fail the run: mention them to the user (`NSK504` is expected until `/n-epics` has run). Then tell the user what changed and suggest the next skill.
+Run `npx scrumo validate --fix`. Fix every error it still reports (if one is unclear, follow `/scrumo-validate`), run it again, and repeat until it exits clean. Stop after 5 rounds and report what is left. Warnings don't fail the run: mention them to the user (`SCRUMO504` is expected until `/scrumo-epics` has run). Then tell the user what changed and suggest the next skill.

@@ -1,4 +1,4 @@
-// Finds a project, reads its files, and checks the layout (NSK1xx).
+// Finds a project, reads its files, and checks the layout (SCRUMO1xx).
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join, relative, resolve, sep } from 'node:path';
 import { parse } from 'yaml';
@@ -12,7 +12,7 @@ export function findRoot(from: string): string | undefined {
   let dir = resolve(from);
   if (existsSync(dir) && !statSync(dir).isDirectory()) dir = dirname(dir);
   for (;;) {
-    if (existsSync(join(dir, 'nsk.yaml'))) return dir;
+    if (existsSync(join(dir, 'scrumo.yaml'))) return dir;
     const parent = dirname(dir);
     if (parent === dir) return undefined;
     dir = parent;
@@ -55,12 +55,12 @@ function kindOf(rel: string, schemas: Schema[], key: string): string | undefined
 
 export function loadProject(root: string, report: Report): Project | undefined {
   const spec = loadSpec();
-  const configFile = 'nsk.yaml';
+  const configFile = 'scrumo.yaml';
   let raw: unknown;
   try {
     raw = parse(readFileSync(join(root, configFile), 'utf8'));
   } catch (error) {
-    report('NSK104', configFile, `nsk.yaml is missing or not valid YAML: ${(error as Error).message.split('\n')[0]}`);
+    report('SCRUMO104', configFile, `scrumo.yaml is missing or not valid YAML: ${(error as Error).message.split('\n')[0]}`);
     return undefined;
   }
   const data = (raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : {}) as Record<string, unknown>;
@@ -69,14 +69,14 @@ export function loadProject(root: string, report: Report): Project | undefined {
   let valid = true;
   checkFields(spec.schemas.get('config')!.frontmatter, data, '', key, undefined, (_code, message) => {
     valid = false;
-    report('NSK104', configFile, message);
+    report('SCRUMO104', configFile, message);
   });
   if (!valid || typeof data.docs_dir !== 'string') return undefined;
 
   const config: Config = { key, docsDir: data.docs_dir, ignore: Array.isArray(data.ignore) ? (data.ignore as string[]) : [] };
   const docsRoot = join(root, config.docsDir);
   if (!existsSync(docsRoot)) {
-    report('NSK104', configFile, `docs_dir "${config.docsDir}" does not exist`);
+    report('SCRUMO104', configFile, `docs_dir "${config.docsDir}" does not exist`);
     return undefined;
   }
   const ignore = config.ignore.map(globToRegExp);
@@ -88,7 +88,7 @@ export function loadProject(root: string, report: Report): Project | undefined {
     if (ignore.some((pattern) => pattern.test(rel)) || /(^|\/)\.gitkeep$/.test(rel)) continue;
     const kind = kindOf(rel, schemas, key);
     if (kind === undefined || !rel.endsWith('.md')) {
-      report('NSK101', file, `"${rel}" isn't allowed in ${config.docsDir}/; see "nsk schema" for the layout, or add it to ignore in nsk.yaml`);
+      report('SCRUMO101', file, `"${rel}" isn't allowed in ${config.docsDir}/; see "scrumo schema" for the layout, or add it to ignore in scrumo.yaml`);
       continue;
     }
     const raw = readFileSync(path, 'utf8');
@@ -101,7 +101,7 @@ export function loadProject(root: string, report: Report): Project | undefined {
     const id = doc.fm?.id;
     if (doc.kind !== 'epic' && doc.kind !== 'story') continue;
     if (typeof id !== 'string') continue;
-    if (tickets.has(id)) report('NSK501', doc.file, `${id} is also used by ${tickets.get(id)!.file}`);
+    if (tickets.has(id)) report('SCRUMO501', doc.file, `${id} is also used by ${tickets.get(id)!.file}`);
     else tickets.set(id, doc);
   }
   const one = (kind: string) => docs.find((doc) => doc.kind === kind);
@@ -117,11 +117,11 @@ export function checkLayout(project: Project, report: Report): void {
     const expected = pathRegex(schema.path.split('/').at(-1)!, project.config.key);
     const other = /^([A-Z][A-Z0-9]*)-\d+-/.exec(name);
     if (!expected.test(name)) {
-      if (other && other[1] !== project.config.key) report('NSK105', doc.file, `file name uses key ${other[1]} but the project key is ${project.config.key}`);
-      else report('NSK102', doc.file, `file name "${name}" must match ${schema.path.split('/').at(-1)!.replace('{key}', project.config.key)}`);
+      if (other && other[1] !== project.config.key) report('SCRUMO105', doc.file, `file name uses key ${other[1]} but the project key is ${project.config.key}`);
+      else report('SCRUMO102', doc.file, `file name "${name}" must match ${schema.path.split('/').at(-1)!.replace('{key}', project.config.key)}`);
       continue;
     }
     const id = typeof doc.fm?.id === 'string' ? doc.fm.id : undefined;
-    if (id !== undefined && !name.startsWith(`${id}-`)) report('NSK103', doc.file, `file name starts with ${/^(.+?-\d+)-/.exec(name)![1]} but the frontmatter id is ${id}`);
+    if (id !== undefined && !name.startsWith(`${id}-`)) report('SCRUMO103', doc.file, `file name starts with ${/^(.+?-\d+)-/.exec(name)![1]} but the frontmatter id is ${id}`);
   }
 }

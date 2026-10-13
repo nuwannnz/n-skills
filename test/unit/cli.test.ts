@@ -1,4 +1,4 @@
-// The nsk commands: validate --fix, new, schema, and the process-level contract.
+// The scrumo commands: validate --fix, new, schema, and the process-level contract.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { mkdirSync } from 'node:fs';
@@ -22,10 +22,10 @@ afterEach(() => {
   for (const f of fixtures.splice(0)) f.dispose();
 });
 
-const nsk = (args: string[], cwd: string) => spawnSync(process.execPath, [CLI, ...args], { cwd, encoding: 'utf8' });
+const scrumo = (args: string[], cwd: string) => spawnSync(process.execPath, [CLI, ...args], { cwd, encoding: 'utf8' });
 const noOptions = { title: undefined, epic: undefined, priority: undefined, requirements: undefined, dependsOn: undefined, today: '2026-10-13' };
 
-describe('nsk validate --fix', () => {
+describe('scrumo validate --fix', () => {
   it('repairs every fixable problem and stamps updated', () => {
     const f = fresh();
     f.write(PRD, f.read(PRD).replaceAll('\n', '\r\n').replace('# PawPlan Product Requirements', '# Wrong title'));
@@ -55,11 +55,11 @@ describe('nsk validate --fix', () => {
     const f = fresh();
     f.edit(STORY4, 'points: 3', 'points: "3"');
     fix(f.root, '2026-10-13');
-    assert.ok(f.codes().includes('NSK304'));
+    assert.ok(f.codes().includes('SCRUMO304'));
   });
 });
 
-describe('nsk new', () => {
+describe('scrumo new', () => {
   it('creates an epic then a story, numbering them together and keeping generated blocks fresh', () => {
     const f = fresh();
     assert.equal(newCommand('epic', f.root, { ...noOptions, title: 'Billing: invoices', requirements: 'FR-001', priority: 'P1' }).code, 0);
@@ -82,7 +82,7 @@ describe('nsk new', () => {
 
   it('creates every planning document as a valid draft in an empty project', () => {
     const f = fresh(null);
-    f.write('nsk.yaml', 'schema_version: 1\nnsk_version: 0.1.0\nproject:\n  name: Demo\n  key: DEMO\ndocs_dir: docs\nsprint:\n  length_days: 14\n  start_weekday: monday\nagents: [claude]\nignore: []\n');
+    f.write('scrumo.yaml', 'schema_version: 1\ncli_version: 0.1.0\nproject:\n  name: Demo\n  key: DEMO\ndocs_dir: docs\nsprint:\n  length_days: 14\n  start_weekday: monday\nagents: [claude]\nskill_prefix: scrumo-\nignore: []\n');
     mkdirSync(f.path('docs'));
     for (const kind of ['brief', 'prd', 'architecture', 'standards']) {
       assert.equal(newCommand(kind, f.root, { ...noOptions, today: '2026-10-13' }).code, 0, kind);
@@ -93,19 +93,19 @@ describe('nsk new', () => {
   });
 });
 
-describe('nsk schema', () => {
+describe('scrumo schema', () => {
   it('describes a type, accepts the tracker alias, and lists the rules', () => {
     assert.match(schemaCommand(['story'], false).out, /### Acceptance Criteria/);
     assert.match(schemaCommand(['tracker'], false).out, /# Sprint tracker/);
     assert.equal(JSON.parse(schemaCommand(['epic'], true).out).kind, 'epic');
-    assert.match(schemaCommand(['rules'], false).out, /NSK612/);
+    assert.match(schemaCommand(['rules'], false).out, /SCRUMO612/);
     assert.equal(schemaCommand(['nope'], false).code, 2);
   });
 });
 
-describe('nsk process', () => {
+describe('scrumo process', () => {
   it('exits 0 and prints a summary for the sample project', () => {
-    const result = nsk(['validate', SAMPLE], process.cwd());
+    const result = scrumo(['validate', SAMPLE], process.cwd());
     assert.equal(result.status, 0, result.stderr);
     assert.match(result.stdout, /no problems found in 15 files/);
   });
@@ -113,45 +113,45 @@ describe('nsk process', () => {
   it('exits 1 with grouped findings and machine-readable output', () => {
     const f = fresh();
     f.edit(STORY8, '(AC-3)', '(AC-1)');
-    const text = nsk(['validate'], f.root);
+    const text = scrumo(['validate'], f.root);
     assert.equal(text.status, 1);
-    assert.match(text.stdout, /docs\/stories\/PAW-8-book-appointment\.md\n {2}NSK602 /);
+    assert.match(text.stdout, /docs\/stories\/PAW-8-book-appointment\.md\n {2}SCRUMO602 /);
     assert.match(text.stdout, /✖ 1 error, 0 warnings in 1 file/);
-    const json = JSON.parse(nsk(['validate', '--json'], f.root).stdout) as { ok: boolean; findings: Array<{ code: string }> };
+    const json = JSON.parse(scrumo(['validate', '--json'], f.root).stdout) as { ok: boolean; findings: Array<{ code: string }> };
     assert.equal(json.ok, false);
-    assert.deepEqual(json.findings.map((x) => x.code), ['NSK602']);
+    assert.deepEqual(json.findings.map((x) => x.code), ['SCRUMO602']);
   });
 
   it('limits output to the path asked for, but still checks the whole project', () => {
     const f = fresh();
     f.edit(STORY8, '(AC-3)', '(AC-1)');
-    assert.equal(nsk(['validate', 'docs/stories/PAW-4-email-signup.md'], f.root).status, 0);
-    assert.equal(nsk(['validate', 'docs/stories'], f.root).status, 1);
+    assert.equal(scrumo(['validate', 'docs/stories/PAW-4-email-signup.md'], f.root).status, 0);
+    assert.equal(scrumo(['validate', 'docs/stories'], f.root).status, 1);
   });
 
   it('exits 0 with only warnings', () => {
     const f = fresh();
     f.edit(TRACKER, 'capacity: 12', 'capacity: 5');
     fix(f.root, '2026-10-13'); // the overview table repeats capacity
-    const result = nsk(['validate'], f.root);
+    const result = scrumo(['validate'], f.root);
     assert.equal(result.status, 0);
-    assert.match(result.stdout, /NSK610 {2}\(warning\)/);
+    assert.match(result.stdout, /SCRUMO610 {2}\(warning\)/);
   });
 
   it('reports a missing project', () => {
     const f = fresh(null);
-    const result = nsk(['validate'], f.root);
+    const result = scrumo(['validate'], f.root);
     assert.equal(result.status, 1);
-    assert.match(result.stdout, /NSK104/);
-    assert.equal(nsk([], f.root).status, 2);
-    assert.equal(nsk(['bogus'], f.root).status, 2);
+    assert.match(result.stdout, /SCRUMO104/);
+    assert.equal(scrumo([], f.root).status, 2);
+    assert.equal(scrumo(['bogus'], f.root).status, 2);
   });
 });
 
 const move = (f: Fixture, id: string, status: string, extra: { assignee?: string; reason?: string } = {}) =>
   moveCommand(id, status, f.root, { assignee: extra.assignee, reason: extra.reason, today: '2026-10-13' });
 
-describe('nsk move', () => {
+describe('scrumo move', () => {
   it('moves a story through its gates and keeps generated tables fresh', () => {
     const f = fresh();
     assert.equal(move(f, 'PAW-8', 'in-progress').code, 1); // needs an assignee
@@ -170,7 +170,7 @@ describe('nsk move', () => {
     assert.match(move(f, 'PAW-8', 'done').out, /from ready it can go to/i);
     const failed = move(f, 'PAW-6', 'done');
     assert.equal(failed.code, 1);
-    assert.match(failed.out, /NSK606/);
+    assert.match(failed.out, /SCRUMO606/);
     assert.equal(f.read(STORY6), before);
     assert.equal(move(f, 'PAW-99', 'done').code, 1);
     assert.equal(move(f, 'PAW-8', 'blocked').code, 2); // needs a reason
@@ -191,44 +191,44 @@ describe('nsk move', () => {
   });
 });
 
-describe('nsk status', () => {
+describe('scrumo status', () => {
   it('summarises the sample project and says what is next', () => {
     const result = board(SAMPLE)!;
     assert.equal(result.project.key, 'PAW');
     assert.equal(result.sprints.find((s) => s.status === 'active')!.points, 10);
     assert.deepEqual(result.stories, { draft: 1, ready: 1, 'in-progress': 1, 'in-qa': 1, done: 2, blocked: 1 });
-    assert.ok(result.next[0]!.startsWith('/n-qa PAW-6'));
+    assert.ok(result.next[0]!.startsWith('/scrumo-qa PAW-6'));
     assert.match(statusCommand(SAMPLE, false).out, /Sprint 2 \(active\)/);
   });
 
   it('points at the first missing planning document in a new project', () => {
     const f = fresh(null);
-    f.write('nsk.yaml', 'schema_version: 1\nnsk_version: 0.1.0\nproject:\n  name: Demo\n  key: DEMO\ndocs_dir: docs\nsprint:\n  length_days: 14\n  start_weekday: monday\nagents: [claude]\nignore: []\n');
+    f.write('scrumo.yaml', 'schema_version: 1\ncli_version: 0.1.0\nproject:\n  name: Demo\n  key: DEMO\ndocs_dir: docs\nsprint:\n  length_days: 14\n  start_weekday: monday\nagents: [claude]\nskill_prefix: scrumo-\nignore: []\n');
     mkdirSync(f.path('docs'));
-    assert.match(board(f.root)!.next[0]!, /^\/n-kickoff/);
+    assert.match(board(f.root)!.next[0]!, /^\/scrumo-kickoff/);
     newCommand('tracker', f.root, noOptions);
     assert.deepEqual(f.findings(), []);
   });
 });
 
-describe('sprint planning edits (what /n-sprint plan does by hand)', () => {
+describe('sprint planning edits (what /scrumo-sprint plan does by hand)', () => {
   it('a new planned sprint validates once --fix has filled the generated tables', () => {
     const f = fresh();
     assert.equal(move(f, 'PAW-9', 'ready').code, 0);
     f.edit(TRACKER, '    completed: null\n---', '    completed: null\n  - number: 3\n    status: planned\n    goal: Owners can cancel.\n    start: 2026-10-12\n    end: 2026-10-23\n    capacity: 8\n    committed: null\n    completed: null\n---');
     f.edit(TRACKER, '## Sprint 2\n', '## Sprint 3\n\n### Stories\n\n### Review\n\n### Retro\n\n## Sprint 2\n');
     f.edit('docs/stories/PAW-9-cancel-appointment.md', 'sprint: null', 'sprint: 3');
-    assert.ok(f.codes().includes('NSK702'));
+    assert.ok(f.codes().includes('SCRUMO702'));
     fix(f.root, '2026-10-13');
     assert.deepEqual(f.findings(), []);
-    assert.match(f.read(TRACKER), /<!-- nsk:generated:sprint-3 -->[\s\S]*\| PAW-9 \| Cancel an appointment \| PAW-2 \| 2 \| ready \| - \|/);
+    assert.match(f.read(TRACKER), /<!-- scrumo:generated:sprint-3 -->[\s\S]*\| PAW-9 \| Cancel an appointment \| PAW-2 \| 2 \| ready \| - \|/);
   });
 });
 
 const sprint = (f: Fixture, sub: string, arg: string | undefined, o: Partial<Parameters<typeof sprintCommand>[3]> = {}) =>
   sprintCommand(sub, arg, f.root, { goal: undefined, capacity: undefined, start: undefined, end: undefined, stories: undefined, today: '2026-10-13', ...o });
 
-describe('nsk sprint', () => {
+describe('scrumo sprint', () => {
   it('closes a sprint, carries unfinished stories over, then plans and starts the next', () => {
     const f = fresh();
     assert.equal(sprint(f, 'close', '1').code, 1); // already closed
@@ -238,9 +238,9 @@ describe('nsk sprint', () => {
     assert.match(f.read(STORY6), /^status: ready$/m);
     assert.match(f.read(STORY6), /^assignee: null$/m);
     assert.match(f.read(STORY6), /^sprint: null$/m);
-    assert.ok(f.codes().includes('NSK409'), 'review and retro are still to be written');
-    f.edit(TRACKER, '<!-- Filled at /n-sprint close. -->', '- Nothing was accepted; everything carried over.');
-    f.edit(TRACKER, '<!-- Filled at /n-sprint close. -->', '- **Went well:** Test plans.\n- **To improve:** Estimates.\n- **Actions:**\n  - sam: re-estimate.');
+    assert.ok(f.codes().includes('SCRUMO409'), 'review and retro are still to be written');
+    f.edit(TRACKER, '<!-- Filled at /scrumo-sprint close. -->', '- Nothing was accepted; everything carried over.');
+    f.edit(TRACKER, '<!-- Filled at /scrumo-sprint close. -->', '- **Went well:** Test plans.\n- **To improve:** Estimates.\n- **Actions:**\n  - sam: re-estimate.');
     assert.deepEqual(f.findings(), []);
 
     const planned = sprint(f, 'plan', undefined, { goal: 'Finish booking.', capacity: '8', stories: 'PAW-7,PAW-8' });
@@ -273,15 +273,15 @@ describe('nsk sprint', () => {
     const planned = sprint(f, 'plan', undefined, { goal: 'First sprint.', capacity: '4', stories: 'PAW-8' });
     assert.equal(planned.code, 0, planned.out);
     assert.match(f.read(TRACKER), /^## Sprint 1$/m);
-    assert.ok(!f.codes().includes('NSK505'));
+    assert.ok(!f.codes().includes('SCRUMO505'));
   });
 });
 
-describe('nsk validate --fix with missing sections', () => {
+describe('scrumo validate --fix with missing sections', () => {
   it('restores required sections that an edit dropped, empty and in order', () => {
     const f = fresh();
-    f.edit(STORY8, '\n## Test Plan\n\n<!-- Written by /n-qa, ideally while the story is ready. -->\n\n## Dev Record\n\n<!-- Filled by /n-dev before moving to in-qa. -->\n\n## QA Record\n\n<!-- Filled by /n-qa, one row per AC per round. -->\n', '');
-    assert.ok(f.codes().includes('NSK401'));
+    f.edit(STORY8, '\n## Test Plan\n\n<!-- Written by /scrumo-qa, ideally while the story is ready. -->\n\n## Dev Record\n\n<!-- Filled by /scrumo-dev before moving to in-qa. -->\n\n## QA Record\n\n<!-- Filled by /scrumo-qa, one row per AC per round. -->\n', '');
+    assert.ok(f.codes().includes('SCRUMO401'));
     fix(f.root, '2026-10-13');
     assert.deepEqual(f.findings(), []);
     assert.match(f.read(STORY8), /## Test Plan\n[\s\S]*## Dev Record\n[\s\S]*## QA Record\n/);

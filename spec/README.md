@@ -1,8 +1,8 @@
 # Spec
 
 This folder is the contract for every file the tool manages. The validator,
-`nsk new`, and `nsk schema` all read it, and the skills learn the rules from
-`nsk schema <kind>` instead of embedding templates.
+`scrumo new`, and `scrumo schema` all read it, and the skills learn the rules from
+`scrumo schema <kind>` instead of embedding templates.
 
 | File | Contents |
 | --- | --- |
@@ -14,9 +14,9 @@ This folder is the contract for every file the tool manages. The validator,
 ## Schema format
 
 ```yaml
-kind: story                  # artifact kind, also the `nsk new` argument
+kind: story                  # artifact kind, also the `scrumo new` argument
 title: Story                 # human name
-description: ...             # one paragraph, shown by `nsk schema`
+description: ...             # one paragraph, shown by `scrumo schema`
 path: stories/{key}-{n}-{slug}.md   # relative to docs_dir
 statuses:                    # optional: allowed values and legal moves
   values: [draft, ready]
@@ -43,9 +43,9 @@ allowed. A field that may be empty is `nullable: true` and holds `null`.
 | `fields` | For `object` (and `list` items that are objects): nested fields. |
 | `nullable` | `true` if the value may be `null`. Defaults to `false`. |
 | `fixed` | A value the field must always have. |
-| `description` | What the field means, shown by `nsk schema`. |
+| `description` | What the field means, shown by `scrumo schema`. |
 
-`{key}` in a pattern is replaced with the project key from `nsk.yaml`.
+`{key}` in a pattern is replaced with the project key from `scrumo.yaml`.
 
 ### Sections
 
@@ -63,8 +63,8 @@ and unknown H2 headings are errors.
 | `empty_in` | Statuses in which the section must be empty. |
 | `no_placeholders_in` | Statuses in which `TODO`, `TBD`, `???`, and `<...>` placeholders are errors. |
 | `subsections` | H3 sections inside this section, same format as `sections`. |
-| `guidance` | What to write, shown by `nsk schema` and inserted by `nsk new` as a comment. |
-| `template` | Body `nsk new` writes for the section, with `{date}`, `{version}`, and `{title}` filled in. Needed where an empty body or `TODO` would fail the schema in a draft. |
+| `guidance` | What to write, shown by `scrumo schema` and inserted by `scrumo new` as a comment. |
+| `template` | Body `scrumo new` writes for the section, with `{date}`, `{version}`, and `{title}` filled in. Needed where an empty body or `TODO` would fail the schema in a draft. |
 
 A section is empty when its body holds nothing but whitespace and HTML
 comments.
@@ -87,4 +87,4 @@ sprint's status instead.
 | `table` | One table with exactly `columns`, in order. `id_column` names a column whose values must be unique, and `id_pattern` checks them. `column_patterns` and `column_values` restrict any column to a regular expression or fixed values. `min_rows` sets a minimum. |
 | `fields` | A `-` list whose top-level items are `**Label:** value`. With `labels`, exactly those labels in that order; without, any labels. Nested lists are allowed under a label. `min_items` sets a minimum. |
 | `entries` | H3 subsections whose headings match `heading_pattern`, each holding a `fields` list with `labels`. `min_entries` sets a minimum. |
-| `generated` | Only the generated block named `block`, between `<!-- nsk:generated:<block> -->` and `<!-- nsk:end -->`. |
+| `generated` | Only the generated block named `block`, between `<!-- scrumo:generated:<block> -->` and `<!-- scrumo:end -->`. |

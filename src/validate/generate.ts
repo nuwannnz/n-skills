@@ -1,10 +1,10 @@
-// NSK7xx: the content of generated blocks, computed from story and epic
+// SCRUMO7xx: the content of generated blocks, computed from story and epic
 // frontmatter and the sprint tracker's frontmatter.
 import type { Doc } from './doc.ts';
 import type { Project } from './types.ts';
 
-export const END_MARKER = '<!-- nsk:end -->';
-export const startMarker = (block: string): string => `<!-- nsk:generated:${block} -->`;
+export const END_MARKER = '<!-- scrumo:end -->';
+export const startMarker = (block: string): string => `<!-- scrumo:generated:${block} -->`;
 
 interface Ticket {
   id: string;

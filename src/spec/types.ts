@@ -54,6 +54,7 @@ export interface SectionDef {
   no_placeholders_in?: string[];
   subsections?: SectionDef[];
   guidance?: string;
+  template?: string;
 }
 
 export interface Schema {

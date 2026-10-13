@@ -11,8 +11,9 @@ All project state lives in strictly structured Markdown under a target
 project's `docs/`. `n-skills` and `nsk` are working names. `PLAN.md` is the
 design and the phase plan, so read it before making structural changes.
 
-Status: phase 0 (spec) is in place. The validator, skills, and installer
-(phases 1 to 4) aren't built yet.
+Status: phases 0 (spec) and 1 (validator, `nsk validate`, `nsk schema`,
+`nsk new`) are done. The skills, `nsk move`/`nsk status`, and the installer
+(phases 2 to 4) aren't built yet.
 
 ## Commands
 
@@ -23,6 +24,7 @@ npm run typecheck    # tsc --noEmit
 npm test             # node --test on test/**/*.test.ts (Node runs the .ts directly)
 npm run lint:md      # markdownlint with spec/markdownlint.json
 npm run build        # compile src/ to dist/
+node src/cli.ts validate examples/sample-project   # run the CLI straight from source
 node --test --test-name-pattern "PAW-6" "test/**/*.test.ts"   # run a single test
 ```
 
@@ -42,12 +44,23 @@ Node's built-in type stripping. The published CLI targets Node 20.
 - **`src/spec/`** loads the spec and rejects malformed schemas (`load.ts`),
   with matching types in `types.ts`. When you add a schema key, update
   `types.ts`, `load.ts`, and `spec/README.md` together.
+- **`src/validate/`** is the validator. `project.ts` finds `nsk.yaml`, reads
+  `docs/`, and checks the layout. `doc.ts` parses a file. `frontmatter.ts`,
+  `sections.ts`, `markdown.ts`, `refs.ts`, and `gates.ts` hold the `NSK3xx`,
+  `NSK4xx`, `NSK2xx`, `NSK5xx`, and `NSK6xx` checks. `generate.ts` builds the
+  generated blocks, and `index.ts` ties it together and applies `--fix`. Every
+  finding is reported through a rule code that must exist in `spec/rules.yaml`.
+  `src/cli.ts` and `src/cli/` are the `nsk` commands.
 - **`examples/sample-project/`** is a hand-written, fully valid project
   (key `PAW`). It covers every story status, a closed and an active sprint, and
   a story that failed a QA round. `test/unit/spec.test.ts` checks it structurally against the
   schemas, so any schema change must keep the sample passing, and vice versa.
   Generated blocks in it (`<!-- nsk:generated:<name> -->` … `<!-- nsk:end -->`)
   are written by hand for now and must match what the generator will produce.
+
+`test/unit/rules.test.ts` holds one broken-project case per rule code in
+`spec/rules.yaml`, each a small edit to a copy of the sample project, and fails
+if a code has no case. Adding a rule means adding its case.
 
 Key rules the design depends on:
 

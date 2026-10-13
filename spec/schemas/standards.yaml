@@ -2,8 +2,8 @@ kind: standards
 title: Coding standards
 description: >-
   The concrete, checkable rules every change must follow, written by
-  /n-standards as a tech lead from the architecture's stack. The Definition of
-  Done at the end is the checklist /n-dev and /n-qa apply to every story.
+  /scrumo-standards as a tech lead from the architecture's stack. The Definition of
+  Done at the end is the checklist /scrumo-dev and /scrumo-qa apply to every story.
 path: coding-standards.md
 statuses:
   values: [draft, approved]
@@ -72,7 +72,7 @@ sections:
     content: { type: checklist, min_items: 3 }
     non_empty_in: [approved]
     no_placeholders_in: [approved]
-    guidance: Unchecked boxes. /n-dev and /n-qa copy and tick them per story; here they stay unchecked.
+    guidance: Unchecked boxes. /scrumo-dev and /scrumo-qa copy and tick them per story; here they stay unchecked.
   - heading: Changelog
     content:
       type: table

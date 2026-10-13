@@ -29,10 +29,10 @@ the slots owners see are always right.
 
 ## Stories
 
-<!-- nsk:generated:epic-stories -->
+<!-- scrumo:generated:epic-stories -->
 
 _No stories yet._
 
-<!-- nsk:end -->
+<!-- scrumo:end -->
 
 ## Risks

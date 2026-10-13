@@ -2,7 +2,8 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
-import type { Content, FieldDef, Rule, Schema, SectionDef, Spec } from './types.ts';
+import { brand } from '../brand.ts';
+import type { Agent, Content, FieldDef, Rule, Schema, SectionDef, Spec } from './types.ts';
 
 export const SPEC_DIR = fileURLToPath(new URL('../../spec/', import.meta.url));
 
@@ -135,11 +136,26 @@ export function loadSpec(dir: string = SPEC_DIR): Spec {
   const { rules } = parse(readFileSync(join(dir, 'rules.yaml'), 'utf8')) as { rules: Rule[] };
   const codes = new Set<string>();
   for (const rule of rules) {
-    if (!/^NSK[1-7]\d{2}$/.test(rule.code)) fail('rules.yaml', `bad code ${rule.code}`);
+    if (!new RegExp(`^${brand.name.toUpperCase()}[1-7]\\d{2}$`).test(rule.code)) fail('rules.yaml', `bad code ${rule.code}`);
     if (codes.has(rule.code)) fail('rules.yaml', `duplicate code ${rule.code}`);
     if (rule.severity !== 'error' && rule.severity !== 'warning') fail('rules.yaml', `${rule.code}: bad severity`);
     if (![true, false, 'partial'].includes(rule.fixable)) fail('rules.yaml', `${rule.code}: bad fixable`);
     codes.add(rule.code);
   }
   return { schemas, rules };
+}
+
+export function loadAgents(dir: string = SPEC_DIR): Agent[] {
+  const { agents } = parse(readFileSync(join(dir, 'agents.yaml'), 'utf8')) as { agents: Agent[] };
+  const ids = new Set<string>();
+  for (const agent of agents) {
+    const where = `agents.yaml: ${agent.id}`;
+    if (!/^[a-z]+$/.test(agent.id) || ids.has(agent.id)) fail(where, 'bad or duplicate id');
+    ids.add(agent.id);
+    for (const path of [agent.skills_dir, ...agent.also_reads]) {
+      if (!/^\.[a-z]+\/skills$/.test(path)) fail(where, `${path} must look like .<folder>/skills`);
+    }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(String(agent.verified)) || !/^https:\/\//.test(agent.source)) fail(where, 'needs verified date and source URL');
+  }
+  return agents;
 }

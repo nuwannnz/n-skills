@@ -1,0 +1,12 @@
+#!/bin/sh
+# scrumo-managed pre-commit hook: validate the project docs when they change.
+if git diff --cached --name-only | grep -qE '^({docs_dir}/|scrumo\.yaml$)'; then
+  if [ -x node_modules/.bin/scrumo ]; then
+    node_modules/.bin/scrumo validate || {
+      echo "scrumo validate failed. Fix the docs (npx scrumo validate --fix), or commit with --no-verify." >&2
+      exit 1
+    }
+  else
+    echo "scrumo is not installed in this project, so the docs were not validated." >&2
+  fi
+fi

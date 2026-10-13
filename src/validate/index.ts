@@ -8,6 +8,7 @@ import { setField } from './edit.ts';
 import { checkFields } from './frontmatter.ts';
 import { checkGates } from './gates.ts';
 import { END_MARKER, generate, renderBlock, sprintsOf, startMarker } from './generate.ts';
+import { packageInfo } from '../install/package.ts';
 import { checkMarkdown, fixMarkdown } from './markdown.ts';
 import { checkLayout, findRoot, loadProject } from './project.ts';
 import { checkRefs } from './refs.ts';
@@ -43,23 +44,32 @@ function hooksFor(project: Project, onGenerated: (name: string, def: SectionDef,
   };
 }
 
+function readRecordedVersion(root: string): string | undefined {
+  const match = /^cli_version:\s*(\S+)/m.exec(readFileSync(join(root, 'scrumo.yaml'), 'utf8'));
+  return match?.[1];
+}
+
 export function validate(path: string): ValidateResult {
   const findings: Finding[] = [];
   const root = findRoot(path);
   const report = makeReport(findings, new Map(getSpec().rules.map((r) => [r.code, r.severity])));
   if (!root) {
-    report('NSK104', 'nsk.yaml', `no nsk.yaml found in or above ${resolve(path)}`);
+    report('SCRUMO104', 'scrumo.yaml', `no scrumo.yaml found in or above ${resolve(path)}`);
     return { root, findings, files: 0 };
   }
   const project = loadProject(root, report);
   if (!project) return { root, findings, files: 0 };
   checkLayout(project, report);
+  const recorded = readRecordedVersion(root);
+  if (recorded !== undefined && recorded !== packageInfo().version) {
+    report('SCRUMO106', 'scrumo.yaml', `scrumo.yaml records scrumo ${recorded} but this is scrumo ${packageInfo().version}; run scrumo update to refresh the installed skills`);
+  }
 
   for (const doc of project.docs) {
     const schema = project.spec.schemas.get(doc.kind!)!;
     checkMarkdown(doc, doc.raw, report);
     if (doc.fmError || !doc.fm) {
-      report('NSK301', doc.file, doc.fmError ?? 'frontmatter block missing');
+      report('SCRUMO301', doc.file, doc.fmError ?? 'frontmatter block missing');
       continue;
     }
     checkFields(schema.frontmatter, doc.fm, '', project.config.key, undefined, (code, message, key) => {
@@ -75,7 +85,7 @@ export function validate(path: string): ValidateResult {
   checkGates(project, report);
 
   const rel = relative(root, resolve(path)).split(sep).join('/');
-  const scoped = rel === '' ? findings : findings.filter((f) => f.file === rel || f.file.startsWith(`${rel}/`) || f.file === 'nsk.yaml');
+  const scoped = rel === '' ? findings : findings.filter((f) => f.file === rel || f.file.startsWith(`${rel}/`) || f.file === 'scrumo.yaml');
   const order = new Map(project.docs.map((d, i) => [d.file, i]));
   scoped.sort((a, b) => (order.get(a.file) ?? -1) - (order.get(b.file) ?? -1));
   return { root, findings: scoped, files: project.docs.length };
@@ -96,14 +106,14 @@ function blockLines(doc: Doc, section: { heading: { line: number }; introEnd: nu
 
 function checkBlock(project: Project, doc: Doc, name: string, section: { heading: { line: number }; introEnd: number }): { code: string; message: string } | undefined {
   const { found } = blockLines(doc, section);
-  const markers = found.filter((line) => line.startsWith('<!-- nsk:'));
+  const markers = found.filter((line) => line.startsWith('<!-- scrumo:'));
   if (found[0] !== startMarker(name) || found.at(-1) !== END_MARKER || markers.length !== 2) {
-    return { code: 'NSK702', message: `generated block "${name}" must be one block between ${startMarker(name)} and ${END_MARKER} and nothing else` };
+    return { code: 'SCRUMO702', message: `generated block "${name}" must be one block between ${startMarker(name)} and ${END_MARKER} and nothing else` };
   }
   const expected = generate(project, doc, name);
-  if (expected === undefined) return { code: 'NSK702', message: `unknown generated block "${name}"` };
+  if (expected === undefined) return { code: 'SCRUMO702', message: `unknown generated block "${name}"` };
   if (found.slice(1, -1).join('\n') !== expected.filter((l) => l.trim() !== '').join('\n')) {
-    return { code: 'NSK701', message: `generated block "${name}" is stale or was edited by hand; run nsk validate --fix` };
+    return { code: 'SCRUMO701', message: `generated block "${name}" is stale or was edited by hand; run scrumo validate --fix` };
   }
   return undefined;
 }

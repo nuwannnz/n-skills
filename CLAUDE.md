@@ -4,17 +4,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-A set of model-agnostic agent skills plus a CLI (`nsk`) that runs a project
-the way a real software team does, using spec-driven development: brief → PRD
+A set of model-agnostic agent skills plus a CLI (`scrumo`) for agile
+engineering teams, so people and their agents work together the way a real
+software team does, using spec-driven development: brief → PRD
 → architecture → coding standards → epics → stories → sprints → dev ⇄ QA.
 All project state lives in strictly structured Markdown under a target
-project's `docs/`. `n-skills` and `nsk` are working names. `PLAN.md` is the
-design and the phase plan, so read it before making structural changes.
+project's `docs/`. The product is `scrumo`; the repository is still named
+`n-skills`. The name lives in `spec/brand.yaml` and is meant to change: run
+`npm run rename -- <name>` (add `--dry-run` to preview) and never rename by hand.
+It replaces the old name wherever it appears as a whole word, in file contents
+and file names, so write the product name in full, as `scrumo`, not in fragments.
+`PLAN.md` is the design and the phase plan, so read it before making structural
+changes.
 
-Status: phases 0 (spec) and 1 (validator, `nsk validate`, `nsk schema`,
-`nsk new`) are done. The 10 skills and `nsk move`/`nsk status`/`nsk sprint`
-(phases 2 and 3) are built and were dry-run once by a fresh agent; multi-agent
-runs are still to do. The installer (phase 4) isn't built.
+Status: phases 0 to 4 are built. The 10 skills were dry-run once by a fresh
+agent; runs in other agents are still to do. Not done: the starter template
+repo and publishing (owner's calls).
 
 ## Commands
 
@@ -38,30 +43,39 @@ Node's built-in type stripping. The published CLI targets Node 20.
   kind: frontmatter fields in their required key order, H2 sections in their
   required order, content rules, and status lists and transitions. The
   schema format is documented in `spec/README.md`. `spec/rules.yaml` lists
-  every validator rule code (`NSK1xx` layout through `NSK7xx` generated
+  every validator rule code (`SCRUMO1xx` layout through `SCRUMO7xx` generated
   content). Codes are stable, so never renumber or reuse one. The validator,
-  `nsk new`, and `nsk schema` must all derive their behaviour from these files
+  `scrumo new`, and `scrumo schema` must all derive their behaviour from these files
   rather than hard-coding structure.
 - **`src/spec/`** loads the spec and rejects malformed schemas (`load.ts`),
   with matching types in `types.ts`. When you add a schema key, update
   `types.ts`, `load.ts`, and `spec/README.md` together.
-- **`src/validate/`** is the validator. `project.ts` finds `nsk.yaml`, reads
+- **`src/validate/`** is the validator. `project.ts` finds `scrumo.yaml`, reads
   `docs/`, and checks the layout. `doc.ts` parses a file. `frontmatter.ts`,
-  `sections.ts`, `markdown.ts`, `refs.ts`, and `gates.ts` hold the `NSK3xx`,
-  `NSK4xx`, `NSK2xx`, `NSK5xx`, and `NSK6xx` checks. `generate.ts` builds the
+  `sections.ts`, `markdown.ts`, `refs.ts`, and `gates.ts` hold the `SCRUMO3xx`,
+  `SCRUMO4xx`, `SCRUMO2xx`, `SCRUMO5xx`, and `SCRUMO6xx` checks. `generate.ts` builds the
   generated blocks, and `index.ts` ties it together and applies `--fix`. Every
   finding is reported through a rule code that must exist in `spec/rules.yaml`.
-  `src/cli.ts` and `src/cli/` are the `nsk` commands.
-- **`skills/n-*/SKILL.md`** are the 10 agent skills, all prefixed `n-`. Every
+  `src/cli.ts` and `src/cli/` are the `scrumo` commands.
+- **`skills/scrumo-*/SKILL.md`** are the 10 agent skills, all prefixed `scrumo-`. Every
   one uses the same section skeleton and an identical `Exit: validate`
-  section, stays under 150 lines, and refers only to skills and `nsk` commands
+  section, stays under 150 lines, and refers only to skills and `scrumo` commands
   that exist; `test/unit/skills.test.ts` enforces that. Skills learn structure
-  from `nsk schema <kind>` and never embed templates.
+  from `scrumo schema <kind>` and never embed templates.
+- **`src/install/`** and `src/cli/install.ts` are the installer. `dirs.ts`
+  picks the fewest skills folders that cover the chosen agents, using
+  `spec/agents.yaml` (`also_reads` lists the other folders an agent scans).
+  `sync.ts` copies skills and keeps `.scrumo/manifest.json` so updates never
+  overwrite local edits. `skills.ts` applies the `skill_prefix`. `managed.ts`
+  writes the AGENTS.md block, the pre-commit hook, and the CI workflow from
+  `templates/`. `cli_version` in a project's `scrumo.yaml` must equal
+  `package.json`'s version or validation warns (`SCRUMO106`), so bump
+  `examples/sample-project/scrumo.yaml` with the package version.
 - **`examples/sample-project/`** is a hand-written, fully valid project
   (key `PAW`). It covers every story status, a closed and an active sprint, and
   a story that failed a QA round. `test/unit/spec.test.ts` checks it structurally against the
   schemas, so any schema change must keep the sample passing, and vice versa.
-  Generated blocks in it (`<!-- nsk:generated:<name> -->` … `<!-- nsk:end -->`)
+  Generated blocks in it (`<!-- scrumo:generated:<name> -->` … `<!-- scrumo:end -->`)
   are written by hand for now and must match what the generator will produce.
 
 `test/unit/rules.test.ts` holds one broken-project case per rule code in

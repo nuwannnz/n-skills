@@ -74,11 +74,11 @@ export function status(doc: Doc): string | undefined {
   return typeof value === 'string' ? value : undefined;
 }
 
-/** Body lines with HTML comments removed (nsk markers kept) and blank lines dropped. */
+/** Body lines with HTML comments removed (scrumo markers kept) and blank lines dropped. */
 export function content(lines: string[]): string[] {
   return lines
     .join('\n')
-    .replace(/<!--(?!\s*nsk:)[\s\S]*?-->/g, '')
+    .replace(/<!--(?!\s*scrumo:)[\s\S]*?-->/g, '')
     .split('\n')
     .filter((line) => line.trim() !== '');
 }
@@ -93,7 +93,7 @@ export function hasPlaceholder(lines: string[]): boolean {
       fence = fence === undefined ? opener[0]!.repeat(opener.length) : undefined;
       continue;
     }
-    if (fence !== undefined || /^<!-- nsk:/.test(line)) continue;
+    if (fence !== undefined || /^<!-- scrumo:/.test(line)) continue;
     kept.push(line.replace(/`[^`]*`/g, ''));
   }
   return PLACEHOLDER.test(kept.join('\n'));

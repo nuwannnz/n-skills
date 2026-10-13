@@ -1,12 +1,12 @@
 {
-  "name": "n-skills",
+  "name": "scrumo",
   "version": "0.1.0",
   "private": true,
-  "description": "Agent skills and a strict Markdown validator for running a spec-driven agile project.",
+  "description": "Agent skills and a strict Markdown validator for agile engineering teams: spec-driven, with every document checked.",
   "license": "MIT",
   "type": "module",
   "bin": {
-    "nsk": "dist/cli.js"
+    "scrumo": "dist/cli.js"
   },
   "files": [
     "dist",
@@ -19,6 +19,8 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
+    "prepack": "npm run build",
+    "rename": "node scripts/rename.ts",
     "typecheck": "tsc --noEmit",
     "test": "node --test \"test/**/*.test.ts\"",
     "lint:md": "markdownlint-cli2 --config spec/markdownlint.json \"*.md\" \"spec/**/*.md\" \"skills/**/*.md\" \"examples/**/*.md\"",

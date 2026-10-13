@@ -1,5 +1,5 @@
 ---
-name: n-architecture
+name: scrumo-architecture
 description: Principal architect. Create or change docs/architecture.md - tech stack, components, data model, interfaces, decisions with trade-offs (AD-xxx), and how every non-functional requirement is met. Use after the PRD is approved or when a technical decision changes.
 ---
 
@@ -24,10 +24,19 @@ design fits what is there), and the user's preferences.
 
 `<docs_dir>/architecture.md`. Decision IDs `AD-001` are permanent.
 
+## Prerequisite: the scrumo CLI
+
+Commands below are `npx scrumo ...`. Before the first one, check the CLI is
+installed in this project: `ls node_modules/.bin/scrumo` (or `scrumo --version` if it
+is installed globally). If it is missing, do not run `npx scrumo`: without a local
+copy, npx would download whatever package the registry serves under that name.
+Tell the user to install it, using the command in the "Spec-driven workflow"
+block of AGENTS.md (otherwise ask for the package name), and wait.
+
 ## Procedure
 
-1. Read the PRD and `npx nsk schema architecture`. Run
-   `npx nsk new architecture`.
+1. Read the PRD and `npx scrumo schema architecture`. Run
+   `npx scrumo new architecture`.
 2. List the major decisions the requirements force: language and framework,
    data store, hosting, authentication, integrations, and anything driven by an
    NFR. Skip choices the user or the codebase has already made.
@@ -40,7 +49,7 @@ design fits what is there), and the user's preferences.
    (`TR-001`).
 6. Map every NFR in the PRD to an approach and a way to verify it. An
    unmapped NFR is a validation error once approved.
-7. Add a Changelog row. On sign-off, run `npx nsk move architecture approved`.
+7. Add a Changelog row. On sign-off, run `npx scrumo move architecture approved`.
 
 Change mode: edit in place, bump `version`, add a Changelog row, and record a
 new AD that supersedes the old one (set the old one's Status to
@@ -56,8 +65,8 @@ new AD that supersedes the old one (set the old one's Status to
 
 ## Hand-off
 
-Next skill: `/n-standards`.
+Next skill: `/scrumo-standards`.
 
 ## Exit: validate
 
-Run `npx nsk validate --fix`. Fix every error it still reports (if one is unclear, follow `/n-validate`), run it again, and repeat until it exits clean. Stop after 5 rounds and report what is left. Warnings don't fail the run: mention them to the user (`NSK504` is expected until `/n-epics` has run). Then tell the user what changed and suggest the next skill.
+Run `npx scrumo validate --fix`. Fix every error it still reports (if one is unclear, follow `/scrumo-validate`), run it again, and repeat until it exits clean. Stop after 5 rounds and report what is left. Warnings don't fail the run: mention them to the user (`SCRUMO504` is expected until `/scrumo-epics` has run). Then tell the user what changed and suggest the next skill.

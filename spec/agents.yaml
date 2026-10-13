@@ -1,25 +1,41 @@
-# Where each agent reads project-level skills from. nsk install copies
-# skills/<name>/ into <skills_dir>/<name>/ for every agent listed in nsk.yaml.
-# verified: false until the path has been checked against the agent's current
-# documentation (plan phase 4).
+# Where each agent reads project-level skills from. scrumo install copies
+# skills/<name>/ into a skills directory for every agent listed in scrumo.yaml.
+#
+# skills_dir is the agent's own folder. also_reads lists other project folders
+# the agent scans too, so one shared copy can serve several agents: the
+# installer picks the fewest directories that cover every selected agent and
+# prefers shared ones, which avoids the same skill showing up twice.
+#
+# verified is the date the paths were last checked against the agent's
+# documentation; source is the page that says so.
 agents:
   - id: claude
     name: Claude Code
     skills_dir: .claude/skills
-    verified: false
+    also_reads: []
+    verified: 2026-10-13
+    source: https://code.claude.com/docs/en/skills
   - id: codex
     name: Codex
     skills_dir: .agents/skills
-    verified: false
+    also_reads: []
+    verified: 2026-10-13
+    source: https://learn.chatgpt.com/docs/build-skills
   - id: cursor
     name: Cursor
     skills_dir: .cursor/skills
-    verified: false
+    also_reads: [.agents/skills, .claude/skills]
+    verified: 2026-10-13
+    source: https://cursor.com/docs/skills
   - id: gemini
     name: Gemini CLI
     skills_dir: .gemini/skills
-    verified: false
+    also_reads: [.agents/skills]
+    verified: 2026-10-13
+    source: https://geminicli.com/docs/cli/skills/
   - id: copilot
     name: GitHub Copilot
     skills_dir: .github/skills
-    verified: false
+    also_reads: [.agents/skills, .claude/skills]
+    verified: 2026-10-13
+    source: https://docs.github.com/en/copilot/how-tos/use-copilot-agents/cloud-agent/create-skills

@@ -1,0 +1,11 @@
+# The product's name, in one place. Change it everywhere with:
+#
+#   npm run rename -- <new-name> [--package @scope/new-name] [--dry-run]
+#
+# name:    the CLI command, the project config file (<name>.yaml), the state
+#          folder (.<name>/), the generated-block markers (<name>:...), the rule
+#          code prefix (<NAME>101), and the skill prefix (<name>-prd).
+# package: the npm package people install. It can differ from the name when the
+#          bare name is taken on npm.
+name: scrumo
+package: "scrumo"

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { readFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
+import { initCommand, installCommand } from './cli/install.ts';
 import { moveCommand } from './cli/move.ts';
 import { newCommand } from './cli/new.ts';
 import { sprintCommand } from './cli/sprint.ts';
@@ -8,15 +9,25 @@ import { schemaCommand } from './cli/schema.ts';
 import { statusCommand } from './cli/status.ts';
 import { validateCommand } from './cli/validate.ts';
 
-const HELP = `nsk: run a project the way a software team does.
+const HELP = `scrumo: agile engineering teams working from strictly structured specs.
 
 Usage:
-  nsk validate [--fix] [--json] [path]   Check docs/ against the spec
-  nsk schema <type> [--json]             Print the spec for a document type (or "rules")
-  nsk new <type> [title] [options]       Create a document (brief, prd, architecture, standards, tracker, epic, story)
-  nsk move <id|document> <status>        Change a status, checking the transition and its gates
-  nsk sprint plan|start|close            Plan a sprint, start it, or close it
-  nsk status [--json]                    Show the board and what to do next
+  scrumo init --key KEY [--name N] [--agents a,b]   Set up scrumo.yaml, docs/, and the skills in this repo
+  scrumo install [--agents a,b] [--prefix p]        Copy the skills into each agent's skills folder
+  scrumo update                                     Re-sync the skills, keeping local edits
+  scrumo validate [--fix] [--json] [path]   Check docs/ against the spec
+  scrumo schema <type> [--json]             Print the spec for a document type (or "rules")
+  scrumo new <type> [title] [options]       Create a document (brief, prd, architecture, standards, tracker, epic, story)
+  scrumo move <id|document> <status>        Change a status, checking the transition and its gates
+  scrumo sprint plan|start|close            Plan a sprint, start it, or close it
+  scrumo status [--json]                    Show the board and what to do next
+
+init/install/update options:
+  --agents <a,b>           claude, codex, cursor, gemini, copilot (default: scrumo.yaml, or what the repo already uses)
+  --prefix <p->            skill name prefix, default scrumo- (for example --prefix acme- gives /acme-prd)
+  --key <KEY> --name <N>   init only: ticket key and product name
+  --hooks --ci             init/install: also add a pre-commit hook / GitHub Actions workflow
+  --force                  overwrite skills edited locally
 
 new options:
   --epic <ID>              story: the epic it belongs to
@@ -47,6 +58,13 @@ function main(argv: string[]): number {
       'depends-on': { type: 'string' },
       assignee: { type: 'string' },
       reason: { type: 'string' },
+      agents: { type: 'string' },
+      prefix: { type: 'string' },
+      key: { type: 'string' },
+      name: { type: 'string' },
+      hooks: { type: 'boolean' },
+      ci: { type: 'boolean' },
+      force: { type: 'boolean' },
       goal: { type: 'string' },
       capacity: { type: 'string' },
       start: { type: 'string' },
@@ -81,6 +99,13 @@ function main(argv: string[]): number {
         dependsOn: values['depends-on'],
       });
       break;
+    case 'init':
+    case 'install':
+    case 'update': {
+      const o = { agents: values.agents, prefix: values.prefix, key: values.key, name: values.name, hooks: values.hooks === true, ci: values.ci === true, force: values.force === true };
+      result = command === 'init' ? initCommand(process.cwd(), o) : installCommand(command, process.cwd(), o);
+      break;
+    }
     case 'move':
       result = moveCommand(rest[0], rest[1], process.cwd(), { assignee: values.assignee, reason: values.reason });
       break;

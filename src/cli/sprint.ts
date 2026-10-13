@@ -1,4 +1,4 @@
-// nsk sprint plan|start|close: the mechanical parts of running a sprint.
+// scrumo sprint plan|start|close: the mechanical parts of running a sprint.
 // Judgment stays with the agent: the goal, the capacity, the stories, and the
 // Review and Retro text.
 import { readFileSync } from 'node:fs';
@@ -43,13 +43,13 @@ const fail = (code: number, out: string) => ({ code, out: `${out}\n` });
 
 export function sprintCommand(sub: string | undefined, arg: string | undefined, cwd: string, options: SprintOptions): { code: number; out: string } {
   if (sub !== 'plan' && sub !== 'start' && sub !== 'close') {
-    return fail(2, 'Usage:\n  nsk sprint plan --goal "..." --capacity N --stories ID,ID [--start DATE] [--end DATE]\n  nsk sprint start <number>\n  nsk sprint close <number>');
+    return fail(2, 'Usage:\n  scrumo sprint plan --goal "..." --capacity N --stories ID,ID [--start DATE] [--end DATE]\n  scrumo sprint start <number>\n  scrumo sprint close <number>');
   }
   const today = options.today ?? new Date().toISOString().slice(0, 10);
   const root = findRoot(cwd);
-  if (!root) return fail(1, 'No nsk.yaml found in or above this folder.');
+  if (!root) return fail(1, 'No scrumo.yaml found in or above this folder.');
   let project = loadProject(root, () => {});
-  if (!project) return fail(1, 'nsk.yaml is invalid; run nsk validate.');
+  if (!project) return fail(1, 'scrumo.yaml is invalid; run scrumo validate.');
   if (!project.tracker) {
     const created = newCommand('tracker', root, { title: undefined, epic: undefined, priority: undefined, requirements: undefined, dependsOn: undefined, today });
     if (created.code !== 0) return created;
@@ -57,7 +57,7 @@ export function sprintCommand(sub: string | undefined, arg: string | undefined, 
   }
   const tracker = project.tracker!;
   const sprints = sprintsOf(tracker);
-  const config = parse(readFileSync(join(root, 'nsk.yaml'), 'utf8')) as { sprint: { length_days: number; start_weekday: string } };
+  const config = parse(readFileSync(join(root, 'scrumo.yaml'), 'utf8')) as { sprint: { length_days: number; start_weekday: string } };
 
   const rewrite = (list: Sprint[]) => setField(setField(tracker.text, 'sprints', sprintsYaml(list)), 'updated', today);
   const storyText = (id: string, edits: Record<string, string>): string => {
@@ -68,10 +68,10 @@ export function sprintCommand(sub: string | undefined, arg: string | undefined, 
 
   if (sub === 'plan') {
     const capacity = Number(options.capacity);
-    if (!options.goal?.trim()) return fail(2, 'nsk sprint plan needs --goal "the one outcome".');
-    if (!Number.isInteger(capacity) || capacity < 0) return fail(2, 'nsk sprint plan needs --capacity <whole number of points>.');
+    if (!options.goal?.trim()) return fail(2, 'scrumo sprint plan needs --goal "the one outcome".');
+    if (!Number.isInteger(capacity) || capacity < 0) return fail(2, 'scrumo sprint plan needs --capacity <whole number of points>.');
     const ids = options.stories?.split(',').map((id) => id.trim()).filter(Boolean) ?? [];
-    if (ids.length === 0) return fail(2, 'nsk sprint plan needs --stories ID,ID with ready stories.');
+    if (ids.length === 0) return fail(2, 'scrumo sprint plan needs --stories ID,ID with ready stories.');
     const bad = ids.map((id) => ({ id, doc: project!.tickets.get(id) })).filter(({ doc }) => doc?.kind !== 'story' || doc.fm?.status !== 'ready' || doc.fm?.sprint !== null);
     if (bad.length) return fail(1, `These aren't ready stories outside a sprint: ${bad.map((b) => b.id).join(', ')}.`);
     const number = Math.max(0, ...sprints.map((s) => s.number)) + 1;
@@ -81,7 +81,7 @@ export function sprintCommand(sub: string | undefined, arg: string | undefined, 
     const points = stories(project).filter((s) => ids.includes(s.id)).reduce((sum, s) => sum + (s.points ?? 0), 0);
     const outcome = transaction(root, today, (_p, write) => {
       let text = rewrite([...sprints, { number, status: 'planned', goal: options.goal!.trim(), start, end, capacity, committed: null, completed: null }]);
-      const section = [`## Sprint ${number}`, '', '### Stories', '', '### Review', '', '<!-- Filled at /n-sprint close. -->', '', '### Retro', '', '<!-- Filled at /n-sprint close. -->', '', ''].join('\n');
+      const section = [`## Sprint ${number}`, '', '### Stories', '', '### Review', '', '<!-- Filled at /scrumo-sprint close. -->', '', '### Retro', '', '<!-- Filled at /scrumo-sprint close. -->', '', ''].join('\n');
       const lines = text.split('\n');
       const first = lines.findIndex((line) => /^## Sprint \d+$/.test(line));
       text = first >= 0 ? [...lines.slice(0, first), ...section.split('\n').slice(0, -1), ...lines.slice(first)].join('\n') : `${text.replace(/\n*$/, '\n')}\n${section.trimEnd()}\n`;
@@ -95,7 +95,7 @@ export function sprintCommand(sub: string | undefined, arg: string | undefined, 
 
   const number = Number(arg);
   const sprint = sprints.find((s) => s.number === number);
-  if (!sprint) return fail(2, `Usage: nsk sprint ${sub} <number>. Sprints: ${sprints.map((s) => s.number).join(', ') || 'none'}.`);
+  if (!sprint) return fail(2, `Usage: scrumo sprint ${sub} <number>. Sprints: ${sprints.map((s) => s.number).join(', ') || 'none'}.`);
   const mine = stories(project).filter((s) => s.sprint === number);
   const replace = (patch: Partial<Sprint>): Sprint[] => sprints.map((s) => (s.number === number ? { ...s, ...patch } : s));
 
@@ -127,7 +127,7 @@ export function sprintCommand(sub: string | undefined, arg: string | undefined, 
       for (const s of carried) write(project!.tickets.get(s.id)!.file, storyText(s.id, { status: 'ready', sprint: 'null', assignee: 'null', blocked_reason: 'null' }));
       for (const id of epicsDone) write(project!.tickets.get(id)!.file, setField(setField(project!.tickets.get(id)!.text, 'status', 'done'), 'updated', today));
     },
-    (f) => f.file === tracker.file && (f.code === 'NSK409' || f.code === 'NSK411'),
+    (f) => f.file === tracker.file && (f.code === 'SCRUMO409' || f.code === 'SCRUMO411'),
   );
   if (!outcome.ok) return fail(1, `Can't close sprint ${number}; it would break these rules:\n${describeErrors(outcome.errors)}`);
   const lines = [`closed sprint ${number}: ${donePoints} of ${sprint.committed ?? 0} committed points done (velocity ${donePoints}).`];

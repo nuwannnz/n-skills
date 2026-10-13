@@ -39,12 +39,12 @@ to a 409 response. Pets are created inline on first booking for now.
 
 ## Test Plan
 
-<!-- Written by /n-qa, ideally while the story is ready. -->
+<!-- Written by /scrumo-qa, ideally while the story is ready. -->
 
 ## Dev Record
 
-<!-- Filled by /n-dev before moving to in-qa. -->
+<!-- Filled by /scrumo-dev before moving to in-qa. -->
 
 ## QA Record
 
-<!-- Filled by /n-qa, one row per AC per round. -->
+<!-- Filled by /scrumo-qa, one row per AC per round. -->

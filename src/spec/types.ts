@@ -78,3 +78,12 @@ export interface Spec {
   schemas: Map<string, Schema>;
   rules: Rule[];
 }
+
+export interface Agent {
+  id: string;
+  name: string;
+  skills_dir: string;
+  also_reads: string[];
+  verified: string;
+  source: string;
+}

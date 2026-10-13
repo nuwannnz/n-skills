@@ -1,4 +1,4 @@
-// nsk move <id|document> <status>: changes a status, checking the transition
+// scrumo move <id|document> <status>: changes a status, checking the transition
 // and every gate. A move that would introduce a new error is rolled back.
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -15,12 +15,12 @@ export interface MoveOptions {
 const DOCUMENTS = ['brief', 'prd', 'architecture', 'standards'];
 
 export function moveCommand(target: string | undefined, status: string | undefined, cwd: string, options: MoveOptions): { code: number; out: string } {
-  if (!target || !status) return { code: 2, out: 'Usage: nsk move <ticket ID|brief|prd|architecture|standards> <status> [--assignee NAME] [--reason TEXT]\n' };
+  if (!target || !status) return { code: 2, out: 'Usage: scrumo move <ticket ID|brief|prd|architecture|standards> <status> [--assignee NAME] [--reason TEXT]\n' };
   const today = options.today ?? new Date().toISOString().slice(0, 10);
   const root = findRoot(cwd);
-  if (!root) return { code: 1, out: 'No nsk.yaml found in or above this folder.\n' };
+  if (!root) return { code: 1, out: 'No scrumo.yaml found in or above this folder.\n' };
   const project = loadProject(root, () => {});
-  if (!project) return { code: 1, out: 'nsk.yaml is invalid; run nsk validate.\n' };
+  if (!project) return { code: 1, out: 'scrumo.yaml is invalid; run scrumo validate.\n' };
 
   const doc = project.tickets.get(target) ?? (DOCUMENTS.includes(target) ? project.docs.find((d) => d.kind === target) : undefined);
   if (!doc) return { code: 1, out: `${target} doesn't exist.\n` };

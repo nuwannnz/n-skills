@@ -1,229 +1,234 @@
 # Every rule the validator reports. Codes are stable: never reuse or renumber.
 # severity: error fails validation; warning is reported but exits 0.
-# fixable: true means `nsk validate --fix` corrects it without judgment.
+# fixable: true means `scrumo validate --fix` corrects it without judgment.
 rules:
   # Layout
-  - code: NSK101
+  - code: SCRUMO101
     severity: error
     fixable: false
     summary: File or folder under the docs folder that the layout doesn't allow.
-  - code: NSK102
+  - code: SCRUMO102
     severity: error
     fixable: false
     summary: File name doesn't match the pattern for its folder.
-  - code: NSK103
+  - code: SCRUMO103
     severity: error
     fixable: false
     summary: Ticket ID in the file name differs from the frontmatter id.
-  - code: NSK104
+  - code: SCRUMO104
     severity: error
     fixable: false
-    summary: nsk.yaml is missing or invalid.
-  - code: NSK105
+    summary: scrumo.yaml is missing or invalid.
+  - code: SCRUMO105
     severity: error
     fixable: false
     summary: Ticket ID uses a key other than the project key.
 
+  - code: SCRUMO106
+    severity: warning
+    fixable: false
+    summary: The scrumo version recorded in scrumo.yaml differs from the scrumo that is running, so the installed skills may be out of date (run scrumo update).
+
   # Markdown format
-  - code: NSK201
+  - code: SCRUMO201
     severity: error
     fixable: partial
     summary: Markdown style violation (the message names the markdownlint rule). Fixed when markdownlint can fix it.
-  - code: NSK202
+  - code: SCRUMO202
     severity: error
     fixable: false
     summary: Document must have exactly one H1, directly after the frontmatter.
-  - code: NSK203
+  - code: SCRUMO203
     severity: error
     fixable: true
     summary: H1 text differs from the frontmatter title.
-  - code: NSK204
+  - code: SCRUMO204
     severity: error
     fixable: true
     summary: File uses CRLF line endings or a byte order mark.
-  - code: NSK205
+  - code: SCRUMO205
     severity: error
     fixable: false
     summary: Heading level not allowed here (H3 only inside sections that define subsections or entries; H4 and deeper never).
 
   # Frontmatter
-  - code: NSK301
+  - code: SCRUMO301
     severity: error
     fixable: false
     summary: Frontmatter block missing or not valid YAML.
-  - code: NSK302
+  - code: SCRUMO302
     severity: error
     fixable: false
     summary: Required frontmatter field missing.
-  - code: NSK303
+  - code: SCRUMO303
     severity: error
     fixable: false
     summary: Unknown frontmatter field.
-  - code: NSK304
+  - code: SCRUMO304
     severity: error
     fixable: false
     summary: Frontmatter value has the wrong type, or is null where null isn't allowed.
-  - code: NSK305
+  - code: SCRUMO305
     severity: error
     fixable: false
     summary: Frontmatter value isn't one of the allowed values, or is outside its bounds.
-  - code: NSK306
+  - code: SCRUMO306
     severity: error
     fixable: false
     summary: Frontmatter value doesn't match its format (date, semver, ticket ID, or pattern).
-  - code: NSK307
+  - code: SCRUMO307
     severity: error
     fixable: true
     summary: Frontmatter keys are out of order.
 
   # Sections
-  - code: NSK401
+  - code: SCRUMO401
     severity: error
     fixable: true
     summary: Required section missing (--fix inserts it empty, with its guidance as a comment).
-  - code: NSK402
+  - code: SCRUMO402
     severity: error
     fixable: false
     summary: Section out of order.
-  - code: NSK403
+  - code: SCRUMO403
     severity: error
     fixable: false
     summary: Unknown section heading.
-  - code: NSK404
+  - code: SCRUMO404
     severity: error
     fixable: false
     summary: Section appears more than once.
-  - code: NSK405
+  - code: SCRUMO405
     severity: error
     fixable: false
     summary: Section content isn't the required type (table, list, checklist, fields, entries, or generated block).
-  - code: NSK406
+  - code: SCRUMO406
     severity: error
     fixable: false
     summary: Table columns differ from the schema, or a cell breaks a column rule.
-  - code: NSK407
+  - code: SCRUMO407
     severity: error
     fixable: false
     summary: Row, entry, or item ID is malformed or duplicated.
-  - code: NSK408
+  - code: SCRUMO408
     severity: error
     fixable: false
     summary: List, checklist, or entry item doesn't match the required pattern or labels.
-  - code: NSK409
+  - code: SCRUMO409
     severity: error
     fixable: false
     summary: Section is empty but must have content in the current status, or has fewer items than the minimum.
-  - code: NSK410
+  - code: SCRUMO410
     severity: error
     fixable: false
     summary: Section must be empty in the current status (for example Open Questions in an approved PRD).
-  - code: NSK411
+  - code: SCRUMO411
     severity: error
     fixable: false
     summary: Placeholder text (TODO, TBD, ???, <...>) in a status that forbids it.
-  - code: NSK412
+  - code: SCRUMO412
     severity: error
     fixable: false
     summary: Changelog's newest version differs from the frontmatter version.
 
   # References
-  - code: NSK501
+  - code: SCRUMO501
     severity: error
     fixable: false
     summary: Two tickets share an ID.
-  - code: NSK502
+  - code: SCRUMO502
     severity: error
     fixable: false
     summary: Ticket reference points to a ticket that doesn't exist or is the wrong kind.
-  - code: NSK503
+  - code: SCRUMO503
     severity: error
     fixable: false
     summary: Requirement ID not defined in the PRD.
-  - code: NSK504
+  - code: SCRUMO504
     severity: warning
     fixable: false
     summary: PRD functional requirement not covered by any epic.
-  - code: NSK505
+  - code: SCRUMO505
     severity: error
     fixable: false
     summary: Story's sprint isn't in the sprint tracker.
-  - code: NSK506
+  - code: SCRUMO506
     severity: error
     fixable: false
     summary: Story dependencies form a cycle.
-  - code: NSK507
+  - code: SCRUMO507
     severity: error
     fixable: false
     summary: AC ID cited in Tasks, Test Plan, or QA Record isn't defined in the story.
-  - code: NSK508
+  - code: SCRUMO508
     severity: error
     fixable: false
     summary: NFR Mapping cites an unknown NFR, or an approved architecture leaves an NFR unmapped.
-  - code: NSK509
+  - code: SCRUMO509
     severity: error
     fixable: false
     summary: Epic's Requirements Coverage rows differ from its frontmatter requirements.
-  - code: NSK510
+  - code: SCRUMO510
     severity: error
     fixable: false
     summary: Sprint numbers aren't 1, 2, 3, ... in order, or a sprint section and its frontmatter entry don't match up.
 
   # Status gates
-  - code: NSK601
+  - code: SCRUMO601
     severity: error
     fixable: false
     summary: Status needs an upstream document approved (epic ready needs the PRD; story ready needs the architecture and coding standards).
-  - code: NSK602
+  - code: SCRUMO602
     severity: error
     fixable: false
     summary: Story can't be ready or later without points, or with an AC that no task cites.
-  - code: NSK603
+  - code: SCRUMO603
     severity: error
     fixable: false
     summary: Story can't be ready or later while its epic is draft.
-  - code: NSK604
+  - code: SCRUMO604
     severity: error
     fixable: false
     summary: Story in-progress needs an active sprint and an assignee.
-  - code: NSK605
+  - code: SCRUMO605
     severity: error
     fixable: false
     summary: Story in-qa or done needs every task checked.
-  - code: NSK606
+  - code: SCRUMO606
     severity: error
     fixable: false
     summary: Story done needs a PASS in its latest QA round for every AC.
-  - code: NSK607
+  - code: SCRUMO607
     severity: error
     fixable: true
     summary: blocked_reason must be set while blocked and null otherwise (--fix clears a stale reason).
-  - code: NSK608
+  - code: SCRUMO608
     severity: error
     fixable: false
     summary: Epic status is inconsistent with its stories (done needs every story done).
-  - code: NSK609
+  - code: SCRUMO609
     severity: error
     fixable: false
     summary: Sprint state is invalid (more than one active sprint, end before start, missing committed or completed).
-  - code: NSK610
+  - code: SCRUMO610
     severity: warning
     fixable: false
     summary: Sprint commits more points than its capacity.
-  - code: NSK611
+  - code: SCRUMO611
     severity: error
     fixable: false
     summary: Story in a planned or active sprint is still draft.
-  - code: NSK612
+  - code: SCRUMO612
     severity: error
     fixable: false
     summary: Story is committed to a sprint ahead of a story it depends on.
 
   # Generated content
-  - code: NSK701
+  - code: SCRUMO701
     severity: error
     fixable: true
     summary: Generated block is stale or was edited by hand.
-  - code: NSK702
+  - code: SCRUMO702
     severity: error
     fixable: true
     summary: Generated block markers missing or malformed.

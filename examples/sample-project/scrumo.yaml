@@ -1,5 +1,5 @@
 schema_version: 1
-nsk_version: 0.1.0
+cli_version: 0.1.0
 project:
   name: PawPlan
   key: PAW
@@ -8,4 +8,5 @@ sprint:
   length_days: 14
   start_weekday: monday
 agents: [claude, codex, cursor]
+skill_prefix: scrumo-
 ignore: []

@@ -7,7 +7,7 @@ import { validate } from '../src/validate/index.ts';
 export const SAMPLE = new URL('../examples/sample-project/', import.meta.url).pathname;
 
 export class Fixture {
-  readonly root = mkdtempSync(join(tmpdir(), 'nsk-'));
+  readonly root = mkdtempSync(join(tmpdir(), 'scrumo-'));
 
   constructor(source: string | null = SAMPLE) {
     if (source) cpSync(source, this.root, { recursive: true });
@@ -95,4 +95,4 @@ export const EPIC3 = 'docs/epics/PAW-3-clinic-schedule.md';
 export const PRD = 'docs/prd.md';
 export const ARCH = 'docs/architecture.md';
 export const TRACKER = 'docs/sprint-tracker.md';
-export const CONFIG = 'nsk.yaml';
+export const CONFIG = 'scrumo.yaml';

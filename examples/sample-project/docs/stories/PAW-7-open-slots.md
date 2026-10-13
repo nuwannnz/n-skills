@@ -49,8 +49,8 @@ times in the clinic's time zone (TR-001).
 
 ## Dev Record
 
-<!-- Filled by /n-dev before moving to in-qa. -->
+<!-- Filled by /scrumo-dev before moving to in-qa. -->
 
 ## QA Record
 
-<!-- Filled by /n-qa, one row per AC per round. -->
+<!-- Filled by /scrumo-qa, one row per AC per round. -->

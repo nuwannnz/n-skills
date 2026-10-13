@@ -2,7 +2,7 @@ kind: story
 title: Story
 description: >-
   One user-visible change small enough for a single sprint, written by
-  /stories, built by /dev, and verified by /qa. Acceptance criteria are the
+  /n-stories, built by /n-dev, and verified by /n-qa. Acceptance criteria are the
   spec: tasks, tests and the QA record all cite their AC IDs.
 path: stories/{key}-{n}-{slug}.md
 statuses:
@@ -42,7 +42,7 @@ frontmatter:
     type: integer
     min: 1
     nullable: true
-    description: Sprint number this story is committed to, set by /sprint plan. null means backlog.
+    description: Sprint number this story is committed to, set by /n-sprint plan. null means backlog.
   - name: assignee
     type: string
     nullable: true
@@ -52,7 +52,7 @@ frontmatter:
     items:
       type: ticket-ref
       ref: story
-    description: Stories that must be done first. /sprint plan won't commit a story ahead of them.
+    description: Stories that must be done first. /n-sprint plan won't commit a story ahead of them.
   - name: blocked_reason
     type: string
     nullable: true
@@ -105,14 +105,14 @@ sections:
         Automated: ['yes', 'no']
     non_empty_in: [in-qa, done]
     no_placeholders_in: [in-qa, done]
-    guidance: Written by /qa, ideally while the story is ready. At least one row per AC.
+    guidance: Written by /n-qa, ideally while the story is ready. At least one row per AC.
   - heading: Dev Record
     content:
       type: fields
       labels: [Branch, Files changed, Tests added, Notes]
     non_empty_in: [in-qa, done]
     no_placeholders_in: [in-qa, done]
-    guidance: Filled by /dev before moving to in-qa. Files and tests as nested bullets.
+    guidance: Filled by /n-dev before moving to in-qa. Files and tests as nested bullets.
   - heading: QA Record
     content:
       type: table

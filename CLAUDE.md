@@ -12,8 +12,9 @@ project's `docs/`. `n-skills` and `nsk` are working names. `PLAN.md` is the
 design and the phase plan, so read it before making structural changes.
 
 Status: phases 0 (spec) and 1 (validator, `nsk validate`, `nsk schema`,
-`nsk new`) are done. The skills, `nsk move`/`nsk status`, and the installer
-(phases 2 to 4) aren't built yet.
+`nsk new`) are done. The 10 skills and `nsk move`/`nsk status`/`nsk sprint`
+(phases 2 and 3) are built and were dry-run once by a fresh agent; multi-agent
+runs are still to do. The installer (phase 4) isn't built.
 
 ## Commands
 
@@ -51,6 +52,11 @@ Node's built-in type stripping. The published CLI targets Node 20.
   generated blocks, and `index.ts` ties it together and applies `--fix`. Every
   finding is reported through a rule code that must exist in `spec/rules.yaml`.
   `src/cli.ts` and `src/cli/` are the `nsk` commands.
+- **`skills/n-*/SKILL.md`** are the 10 agent skills, all prefixed `n-`. Every
+  one uses the same section skeleton and an identical `Exit: validate`
+  section, stays under 150 lines, and refers only to skills and `nsk` commands
+  that exist; `test/unit/skills.test.ts` enforces that. Skills learn structure
+  from `nsk schema <kind>` and never embed templates.
 - **`examples/sample-project/`** is a hand-written, fully valid project
   (key `PAW`). It covers every story status, a closed and an active sprint, and
   a story that failed a QA round. `test/unit/spec.test.ts` checks it structurally against the

@@ -32,12 +32,12 @@ Uses the scheduler component.
 
 ## Test Plan
 
-<!-- Written by /qa, ideally while the story is ready. -->
+<!-- Written by /n-qa, ideally while the story is ready. -->
 
 ## Dev Record
 
-<!-- Filled by /dev before moving to in-qa. -->
+<!-- Filled by /n-dev before moving to in-qa. -->
 
 ## QA Record
 
-<!-- Filled by /qa, one row per AC per round. -->
+<!-- Filled by /n-qa, one row per AC per round. -->

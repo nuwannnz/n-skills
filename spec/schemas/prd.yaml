@@ -1,7 +1,7 @@
 kind: prd
 title: Product requirements document
 description: >-
-  What the product must do and how well, written by /prd as a senior business
+  What the product must do and how well, written by /n-prd as a senior business
   analyst. Every requirement gets a stable ID that epics, the architecture and
   tests refer to. Requirements are never invented: anything not confirmed by
   the user goes under Assumptions.

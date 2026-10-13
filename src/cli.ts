@@ -1,8 +1,11 @@
 #!/usr/bin/env node
 import { readFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
+import { moveCommand } from './cli/move.ts';
 import { newCommand } from './cli/new.ts';
+import { sprintCommand } from './cli/sprint.ts';
 import { schemaCommand } from './cli/schema.ts';
+import { statusCommand } from './cli/status.ts';
 import { validateCommand } from './cli/validate.ts';
 
 const HELP = `nsk: run a project the way a software team does.
@@ -10,13 +13,23 @@ const HELP = `nsk: run a project the way a software team does.
 Usage:
   nsk validate [--fix] [--json] [path]   Check docs/ against the spec
   nsk schema <type> [--json]             Print the spec for a document type (or "rules")
-  nsk new <type> [title] [options]       Create a document (brief, prd, architecture, standards, epic, story)
+  nsk new <type> [title] [options]       Create a document (brief, prd, architecture, standards, tracker, epic, story)
+  nsk move <id|document> <status>        Change a status, checking the transition and its gates
+  nsk sprint plan|start|close            Plan a sprint, start it, or close it
+  nsk status [--json]                    Show the board and what to do next
 
 new options:
   --epic <ID>              story: the epic it belongs to
   --priority <P0..P3>      epic and story priority (default P2)
   --requirements <FR-001,...>   epic: PRD requirements it delivers
   --depends-on <ID,...>    story: stories that must be done first
+
+sprint options (plan): --goal TEXT --capacity N --stories ID,ID [--start DATE] [--end DATE]
+  sprint start <number> and sprint close <number> take the sprint number.
+
+move options:
+  --assignee <name>        story: who is building it (needed for in-progress)
+  --reason <text>          why it is blocked (needed for blocked)
 `;
 
 function main(argv: string[]): number {
@@ -32,6 +45,13 @@ function main(argv: string[]): number {
       priority: { type: 'string' },
       requirements: { type: 'string' },
       'depends-on': { type: 'string' },
+      assignee: { type: 'string' },
+      reason: { type: 'string' },
+      goal: { type: 'string' },
+      capacity: { type: 'string' },
+      start: { type: 'string' },
+      end: { type: 'string' },
+      stories: { type: 'string' },
     },
   });
   const [command, ...rest] = positionals;
@@ -60,6 +80,15 @@ function main(argv: string[]): number {
         requirements: values.requirements,
         dependsOn: values['depends-on'],
       });
+      break;
+    case 'move':
+      result = moveCommand(rest[0], rest[1], process.cwd(), { assignee: values.assignee, reason: values.reason });
+      break;
+    case 'sprint':
+      result = sprintCommand(rest[0], rest[1], process.cwd(), { goal: values.goal, capacity: values.capacity, start: values.start, end: values.end, stories: values.stories });
+      break;
+    case 'status':
+      result = statusCommand(process.cwd(), values.json === true);
       break;
     default:
       result = { code: 2, out: `Unknown command "${command}".\n\n${HELP}` };

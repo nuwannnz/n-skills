@@ -79,8 +79,8 @@ rules:
   # Sections
   - code: NSK401
     severity: error
-    fixable: false
-    summary: Required section missing.
+    fixable: true
+    summary: Required section missing (--fix inserts it empty, with its guidance as a comment).
   - code: NSK402
     severity: error
     fixable: false

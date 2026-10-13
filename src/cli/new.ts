@@ -17,7 +17,7 @@ export interface NewOptions {
   today?: string;
 }
 
-const NEW_KINDS = ['brief', 'prd', 'architecture', 'standards', 'epic', 'story'];
+const NEW_KINDS = ['brief', 'prd', 'architecture', 'standards', 'sprint-tracker', 'epic', 'story'];
 
 function slugify(title: string): string {
   return title.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 48).replace(/-+$/, '');
@@ -69,7 +69,7 @@ export function render(schema: Schema, values: Record<string, unknown>, renderBl
 export function newCommand(kindArg: string | undefined, cwd: string, options: NewOptions): { code: number; out: string } {
   const today = options.today ?? new Date().toISOString().slice(0, 10);
   const kind = kindArg === undefined ? undefined : resolveKind(kindArg);
-  if (!kind || !NEW_KINDS.includes(kind)) return { code: 2, out: `Usage: nsk new <${NEW_KINDS.join('|')}> [title] [options]\n` };
+  if (!kind || !NEW_KINDS.includes(kind)) return { code: 2, out: `Usage: nsk new <${[...NEW_KINDS.slice(0, 4), 'tracker', 'epic', 'story'].join('|')}> [title] [options]\n` };
   const root = findRoot(cwd);
   if (!root) return { code: 1, out: 'No nsk.yaml found in or above this folder.\n' };
   const problems: string[] = [];
@@ -77,7 +77,8 @@ export function newCommand(kindArg: string | undefined, cwd: string, options: Ne
   if (!project) return { code: 1, out: `${problems.join('\n')}\n` };
   const schema = project.spec.schemas.get(kind)!;
   const isTicket = kind === 'epic' || kind === 'story';
-  const title = options.title?.trim() || (isTicket ? undefined : schema.title);
+  const fixedTitle = schema.frontmatter.find((f) => f.name === 'title')?.fixed;
+  const title = typeof fixedTitle === 'string' ? fixedTitle : options.title?.trim() || (isTicket ? undefined : schema.title);
   if (!title) return { code: 2, out: `nsk new ${kind} needs a title, for example: nsk new ${kind} "Sign up with email"\n` };
 
   const values: Record<string, unknown> = Object.fromEntries(schema.frontmatter.map((f) => [f.name, defaultValue(f, today)]));

@@ -23,7 +23,7 @@ frontmatter:
         type: string
         pattern: '^[A-Z][A-Z0-9]{1,9}$'
         description: >-
-          Ticket key, asked for during /kickoff. 2 to 10 uppercase letters or
+          Ticket key, asked for during /n-kickoff. 2 to 10 uppercase letters or
           digits, starting with a letter. Never changes once tickets exist.
   - name: docs_dir
     type: string

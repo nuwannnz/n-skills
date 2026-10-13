@@ -1,7 +1,7 @@
 kind: architecture
 title: Architecture
 description: >-
-  How the system is built to meet the PRD, written by /architecture as a
+  How the system is built to meet the PRD, written by /n-architecture as a
   principal architect. Major choices are recorded as decisions with their
   trade-offs, and every non-functional requirement is mapped to how it is met
   and verified.

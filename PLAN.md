@@ -18,7 +18,7 @@ final name.
    hand-write a file skeleton. They call `nsk new <type>` to create a file from
    the schema, then fill it in. The CLI assigns IDs, frontmatter, and headings.
 2. **Validation is deterministic.** No LLM decides whether a file is valid. The
-   `nsk validate` CLI does, and `/validate` is a thin skill that runs it and
+   `nsk validate` CLI does, and `/n-validate` is a thin skill that runs it and
    fixes whatever it reports.
 3. **One source of truth per fact.** A story's status lives only in that
    story's frontmatter. The sprint tracker's tables are generated from story
@@ -47,7 +47,7 @@ final name.
 ```text
 nsk.yaml                    # project config (repo root)
 docs/                       # managed root (configurable in nsk.yaml)
-├── brief.md                # raw idea, goals, constraints (from /kickoff)
+├── brief.md                # raw idea, goals, constraints (from /n-kickoff)
 ├── prd.md
 ├── architecture.md
 ├── coding-standards.md
@@ -62,7 +62,7 @@ docs/                       # managed root (configurable in nsk.yaml)
 
 IDs work like Jira tickets:
 
-- `/kickoff` asks for a **project key**: 2 to 10 characters, uppercase letters
+- `/n-kickoff` asks for a **project key**: 2 to 10 characters, uppercase letters
   and digits, starting with a letter (`ACME`, `PAW`, `HR2`).
 - Epics and stories share **one counter**, so every ticket in the project has a
   unique number: `ACME-1` might be an epic and `ACME-2` its first story.
@@ -121,7 +121,7 @@ validator, `nsk new`, and `nsk schema` all read them.
 | `brief.md` | Idea, Problem, Target Users, Goals, Constraints, Raw Input | Raw Input keeps the user's original words verbatim. |
 | `prd.md` | Overview, Goals, Non-Goals, Personas, Functional Requirements, Non-Functional Requirements, Assumptions, Risks, Open Questions, Changelog | Requirements go in tables with IDs `FR-001` and `NFR-001`. Open Questions must be empty before approval. |
 | `architecture.md` | Context, Tech Stack, Components, Data Model, Interfaces, Decisions, NFR Mapping, Deployment, Risks, Changelog | Decisions use IDs `AD-001` with context, decision, and consequences. NFR Mapping must cover every NFR. |
-| `coding-standards.md` | Stack & Versions, Project Structure, Naming, Formatting & Linting, Testing, Error Handling & Logging, Security, Git Workflow, Definition of Done | Definition of Done is a checklist that the `/dev` and `/qa` skills apply. |
+| `coding-standards.md` | Stack & Versions, Project Structure, Naming, Formatting & Linting, Testing, Error Handling & Logging, Security, Git Workflow, Definition of Done | Definition of Done is a checklist that the `/n-dev` and `/n-qa` skills apply. |
 
 ### Epic
 
@@ -183,18 +183,18 @@ The body is mostly generated from story and epic frontmatter:
 | Section | Content | Who writes it |
 | --- | --- | --- |
 | `## Overview` | One row per sprint: status, dates, goal, committed points, completed points, capacity. | Generated |
-| `## Backlog` | Every story not in a sprint, ordered by priority, with its epic, points and status. Ready stories are what `/sprint plan` picks from. | Generated |
+| `## Backlog` | Every story not in a sprint, ordered by priority, with its epic, points and status. Ready stories are what `/n-sprint plan` picks from. | Generated |
 | `## Sprint N` | One per sprint, newest first. | Mixed |
 | `### Stories` | ID, title, epic, points, status, assignee. | Generated |
-| `### Review` | What was demoed and accepted. Required once closed. | `/sprint close` |
-| `### Retro` | Went well, to improve, actions. Required once closed. | `/sprint close` |
+| `### Review` | What was demoed and accepted. Required once closed. | `/n-sprint close` |
+| `### Retro` | Went well, to improve, actions. Required once closed. | `/n-sprint close` |
 
 Generated blocks sit between `<!-- nsk:generated:<name> -->` and
 `<!-- nsk:end -->` markers. `nsk validate --fix` rewrites them, and the
 validator fails if they're stale. Stories join a sprint only through their own
 `sprint:` field, so the tracker never holds story status by hand.
 
-Sprint planning (`/sprint plan`) works like a real planning meeting:
+Sprint planning (`/n-sprint plan`) works like a real planning meeting:
 
 1. Work out capacity: the last 3 sprints' average velocity, adjusted for
    availability, or a team-provided number for the first sprint.
@@ -243,6 +243,7 @@ field definitions, so there's no need for a JSON Schema library.
 | `nsk validate [--fix] [--json] [path]` | Runs every check (section 5). `--fix` applies the deterministic fixes. |
 | `nsk move <id> <status>` | Changes status with transition and gate checks. |
 | `nsk status [--json]` | Shows a board summary: the current sprint, counts by status, and what's next. |
+| `nsk sprint plan\|start\|close` | The mechanical parts of a sprint: adds the sprint and its section, commits stories, activates it and starts its epics, then records velocity, carries unfinished stories back to the backlog, and closes finished epics. The agent supplies the goal, capacity, stories, Review, and Retro. |
 
 The installer's agent-to-directory map is data in `spec/agents.yaml`, so adding
 an agent is a one-line change. Starting targets:
@@ -283,7 +284,7 @@ docs/stories/ACME-5-login.md
 ```
 
 `--json` emits the same findings as machine-readable output, so the
-`/validate` skill can loop on it.
+`/n-validate` skill can loop on it.
 
 Validation is enforced in four places:
 
@@ -303,16 +304,16 @@ optional `checklist.md`.
 
 | Skill | Expert persona | Reads | Writes | Key behaviors |
 | --- | --- | --- | --- | --- |
-| `/kickoff` | Product strategist | User input | `nsk.yaml`, `brief.md` | Captures the idea and constraints, keeps the raw input verbatim, asks at most 5 sharp questions, and runs `nsk init` if needed. |
-| `/prd` | Senior business analyst | brief, prd | `prd.md` | Elicits requirements in rounds, never invents them (unverified items go in Assumptions), and assigns FR/NFR IDs. Change mode bumps the version, adds a Changelog entry, and flags affected epics and stories. |
-| `/architecture` | Principal architect | prd | `architecture.md` | Proposes 1 or 2 options for each major decision with trade-offs and records the choice as `AD-xxx`. Maps every NFR. |
-| `/standards` | Staff engineer / tech lead | architecture | `coding-standards.md` | Turns the stack into concrete, checkable rules and defines the Definition of Done. |
-| `/epics` | Product owner | prd, architecture | `epics/*` | Slices the work into value-based epics, ensures full FR coverage, and orders them. |
-| `/stories` | Agile coach / PO | epic, architecture, standards | `stories/*` | Writes INVEST stories with Given/When/Then ACs and estimates, checks the Definition of Ready, and moves stories to `ready`. |
-| `/sprint` | Scrum master | tracker, stories | `sprint-tracker.md`, story `sprint` field | Has four sub-flows: `plan` (capacity, then select from ready stories), `start`, `close` (velocity and retro), and `status`. |
-| `/dev` | Senior developer | story, architecture, standards | Code, story Dev Record | Picks or receives a story, moves it to in-progress, works through the tasks test-first, self-reviews against the Definition of Done, then moves it to in-qa. |
-| `/qa` | QA engineer | story, standards | Story Test Plan and QA Record, tests | Writes the test plan (ideally at ready), verifies every AC with evidence, and either passes the story (done) or fails it back to in-progress with defects noted. |
-| `/validate` | Release gatekeeper | Everything under `docs/` | Fixes | Runs `nsk validate --fix --json` and fixes what remains until it is clean (a maximum of N rounds, then it reports). |
+| `/n-kickoff` | Product strategist | User input | `nsk.yaml`, `brief.md` | Captures the idea and constraints, keeps the raw input verbatim, asks at most 5 sharp questions, and runs `nsk init` if needed. |
+| `/n-prd` | Senior business analyst | brief, prd | `prd.md` | Elicits requirements in rounds, never invents them (unverified items go in Assumptions), and assigns FR/NFR IDs. Change mode bumps the version, adds a Changelog entry, and flags affected epics and stories. |
+| `/n-architecture` | Principal architect | prd | `architecture.md` | Proposes 1 or 2 options for each major decision with trade-offs and records the choice as `AD-xxx`. Maps every NFR. |
+| `/n-standards` | Staff engineer / tech lead | architecture | `coding-standards.md` | Turns the stack into concrete, checkable rules and defines the Definition of Done. |
+| `/n-epics` | Product owner | prd, architecture | `epics/*` | Slices the work into value-based epics, ensures full FR coverage, and orders them. |
+| `/n-stories` | Agile coach / PO | epic, architecture, standards | `stories/*` | Writes INVEST stories with Given/When/Then ACs and estimates, checks the Definition of Ready, and moves stories to `ready`. |
+| `/n-sprint` | Scrum master | tracker, stories | `sprint-tracker.md`, story `sprint` field | Has four sub-flows: `plan` (capacity, then select from ready stories), `start`, `close` (velocity and retro), and `status`. |
+| `/n-dev` | Senior developer | story, architecture, standards | Code, story Dev Record | Picks or receives a story, moves it to in-progress, works through the tasks test-first, self-reviews against the Definition of Done, then moves it to in-qa. |
+| `/n-qa` | QA engineer | story, standards | Story Test Plan and QA Record, tests | Writes the test plan (ideally at ready), verifies every AC with evidence, and either passes the story (done) or fails it back to in-progress with defects noted. |
+| `/n-validate` | Release gatekeeper | Everything under `docs/` | Fixes | Runs `nsk validate --fix --json` and fixes what remains until it is clean (a maximum of N rounds, then it reports). |
 
 Every `SKILL.md` uses the same section skeleton, which the repo's own CI
 lints:
@@ -338,17 +339,18 @@ description: Senior business analyst. Create or update docs/prd.md from the brie
 until the run is clean. It then reports what changed and the suggested next
 skill.
 
-Skill names are short and unprefixed, as you suggested (`/prd`). The exception
-is `/kickoff`, because `/init` clashes with Claude Code's built-in command.
-`nsk install --prefix n-` can rename them all (for example `/n-prd`) if a
-project already has clashing skills.
+Skill names carry an `n-` prefix (`/n-prd`, `/n-sprint`), so they never clash
+with a project's own skills or Claude Code's built-in commands (for example
+`/init`). The prefix is part of each skill's folder name, its `name:` field, and
+every cross-reference between skills. When `nsk install` gets a `--prefix`
+option (phase 4), it renames all three together.
 
 The end-to-end flow:
 
 ```text
-/kickoff → /prd → /architecture → /standards → /epics → /stories
-        → /sprint plan → /sprint start → (/dev ⇄ /qa)* → /sprint close
-(/validate runs after every step; /prd change mode handles scope changes)
+/n-kickoff → /n-prd → /n-architecture → /n-standards → /n-epics → /n-stories
+        → /n-sprint plan → /n-sprint start → (/n-dev ⇄ /n-qa)* → /n-sprint close
+(/n-validate runs after every step; /n-prd change mode handles scope changes)
 ```
 
 ## 7. Distribution
@@ -401,10 +403,30 @@ n-skills/
 | --- | --- | --- |
 | **0. Spec** | Write all schemas (section 3) and the rule catalogue (section 5) as `spec/schemas/*.yaml`, plus a hand-written `examples/sample-project`. | The schemas and the example agree, and you have reviewed them. |
 | **1. Validator** | `nsk validate` (+`--fix`, `--json`), `nsk schema`, and `nsk new`. Fixtures for every rule code. | Every invalid fixture fails with the expected code, and the sample project passes. |
-| **2. Planning skills** | `/validate`, `/kickoff`, `/prd`, `/architecture`, `/standards`, `/epics`, `/stories`. | A dry run from a one-paragraph idea to ready stories passes validation in at least 2 different agents. |
-| **3. Delivery skills** | `nsk move`, `nsk status`, tracker generation, `/sprint`, `/dev`, `/qa`. | One full sprint, from plan to close with dev and QA, runs on the sample project. |
+| **2. Planning skills** | `/n-validate`, `/n-kickoff`, `/n-prd`, `/n-architecture`, `/n-standards`, `/n-epics`, `/n-stories`. | A dry run from a one-paragraph idea to ready stories passes validation in at least 2 different agents. |
+| **3. Delivery skills** | `nsk move`, `nsk status`, tracker generation, `/n-sprint`, `/n-dev`, `/n-qa`. | One full sprint, from plan to close with dev and QA, runs on the sample project. |
 | **4. Distribution** | `nsk init`, `install`, `update`, the `--prefix` option, the agent map, the AGENTS.md snippet, pre-commit and CI templates, the starter template repo, and the npm publish workflow. | A fresh repo and an existing repo can each be set up with one command for Claude Code, Codex, and Cursor. |
 | **5. Dogfood & trim** | Run it on a real small project and cut anything the skills or CLI didn't actually need. | The `SKILL.md` files stay at or under ~150 lines, and you are happy with the workflow. |
+
+Status: phases 0 and 1 are done. The phase 2 and 3 skills (all 10) and the
+`nsk move`, `nsk status`, `nsk sprint`, and `nsk new tracker` commands are
+built and linted. A fresh agent dry-ran the whole flow on a toy project (idea
+to a closed sprint with a failed-then-passed QA round and a carry-over) using
+only the `SKILL.md` files, and the friction it found was fixed. The "done when"
+runs that remain: the same flow in at least 2 different agents, and a full
+sprint on the sample project.
+
+Known gap until phase 4: `/n-kickoff` writes `nsk.yaml` by hand because there
+is no `nsk init` yet.
+
+### Planned additions
+
+Skills to add after the first 10 have been dogfooded:
+
+| Skill | Why |
+| --- | --- |
+| `/n-change` | Change requests to an approved PRD or architecture. Today `/n-prd` and `/n-architecture` have a change mode. A dedicated skill would also work out the ripple through epics and stories, and re-open the affected ones. |
+| `/n-refine` | Backlog grooming: estimating, splitting 13-point stories, adding dependencies, and moving stories to `ready`. Today this is split between `/n-stories` and `/n-sprint plan`. |
 
 ## 10. Decisions
 
@@ -417,7 +439,7 @@ Confirmed:
    a Node-free install matters later, the CLI can be packaged as a standalone
    executable without a rewrite.
 2. **Ticket IDs: Jira-style `<KEY>-<n>`** with one counter shared by epics and
-   stories. The project key is asked for during `/kickoff`. See section 2.
+   stories. The project key is asked for during `/n-kickoff`. See section 2.
 3. **Sprint tracker: one `sprint-tracker.md`** that lists every sprint with
    its stories and their status, plus the backlog, and supports sprint
    planning. See section 3.
@@ -425,6 +447,8 @@ Confirmed:
 5. **Managed root: `docs/`**, configurable in `nsk.yaml`.
 6. **First agents to support:** Claude Code, Codex, and Cursor, then Gemini
    CLI and Copilot.
+7. **Skill prefix: `n-`.** Skills are `/n-prd`, `/n-sprint`, and so on. See
+   section 6.
 
 Still open: **the product name.** `n-skills` doesn't describe what the tool
 does. Candidates (all free on npm as of 2026-10-09):

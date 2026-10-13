@@ -21,7 +21,7 @@
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
     "test": "node --test \"test/**/*.test.ts\"",
-    "lint:md": "markdownlint-cli2 --config spec/markdownlint.json \"*.md\" \"spec/**/*.md\" \"examples/**/*.md\"",
+    "lint:md": "markdownlint-cli2 --config spec/markdownlint.json \"*.md\" \"spec/**/*.md\" \"skills/**/*.md\" \"examples/**/*.md\"",
     "check": "npm run typecheck && npm run lint:md && npm test"
   },
   "dependencies": {

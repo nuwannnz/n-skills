@@ -4,6 +4,7 @@ import { join, relative, resolve, sep } from 'node:path';
 import { loadSpec } from '../spec/load.ts';
 import type { SectionDef, Spec } from '../spec/types.ts';
 import { parseDoc, type Doc } from './doc.ts';
+import { setField } from './edit.ts';
 import { checkFields } from './frontmatter.ts';
 import { checkGates } from './gates.ts';
 import { END_MARKER, generate, renderBlock, sprintsOf, startMarker } from './generate.ts';
@@ -123,10 +124,34 @@ function fixKeyOrder(lines: string[], order: string[]): string[] {
   return ['---', ...sorted.flatMap((b) => b.lines), ...lines.slice(end)];
 }
 
+/** Inserts any required H2 section that is missing, empty, in schema order. */
+function fixMissingSections(doc: Doc, defs: SectionDef[]): string {
+  let text = doc.text;
+  for (let round = 0; round < defs.length; round += 1) {
+    const current = parseDoc(doc.file, doc.rel, doc.kind, text);
+    const present = new Set(current.headings.filter((h) => h.level === 2).map((h) => h.text));
+    const index = defs.findIndex((def) => def.heading !== undefined && !def.optional && !present.has(def.heading));
+    if (index < 0) break;
+    const def = defs[index]!;
+    const anchor = defs.slice(index + 1).find((d) => d.heading !== undefined && present.has(d.heading));
+    const at = anchor ? current.headings.find((h) => h.level === 2 && h.text === anchor.heading)!.line : current.lines.length;
+    const block = [`## ${def.heading}`, '', ...(def.guidance ? [`<!-- ${def.guidance.replace(/\s+/g, ' ').replace(/-->/g, '').trim()} -->`, ''] : [])];
+    const lines = [...current.lines];
+    if (!anchor) while (lines.at(-1) === '') lines.pop();
+    lines.splice(anchor ? at : lines.length, 0, ...(anchor ? [] : ['']), ...block);
+    text = lines.join('\n');
+  }
+  return text;
+}
+
 function fixDoc(project: Project, doc: Doc): string {
   let text = fixMarkdown(doc.text);
   let current = parseDoc(doc.file, doc.rel, doc.kind, text);
   const schema = project.spec.schemas.get(doc.kind!)!;
+  if (current.fm) {
+    text = fixMissingSections(current, schema.sections);
+    current = parseDoc(doc.file, doc.rel, doc.kind, text);
+  }
   let lines = current.lines;
   const h1s = current.headings.filter((h) => h.level === 1);
   if (h1s.length === 1 && typeof current.fm?.title === 'string' && h1s[0]!.text !== current.fm.title) {
@@ -136,13 +161,8 @@ function fixDoc(project: Project, doc: Doc): string {
   lines = fixKeyOrder(lines, schema.frontmatter.map((f) => f.name!));
   text = lines.join('\n');
   current = parseDoc(doc.file, doc.rel, doc.kind, text);
-  const reasonLine = current.fmKeyLines.get('blocked_reason');
-  if (doc.kind === 'story' && current.fm?.status !== 'blocked' && reasonLine !== undefined && current.fm?.blocked_reason !== null) {
-    const closing = current.lines.indexOf('---', 1);
-    const next = [...current.fmKeyLines.values()].filter((line) => line > reasonLine).sort((a, b) => a - b)[0] ?? closing;
-    lines = [...current.lines];
-    lines.splice(reasonLine, next - reasonLine, 'blocked_reason: null');
-    text = lines.join('\n');
+  if (doc.kind === 'story' && current.fm?.status !== 'blocked' && current.fmKeyLines.has('blocked_reason') && current.fm?.blocked_reason !== null) {
+    text = setField(text, 'blocked_reason', 'null');
   }
   return text;
 }

@@ -2,7 +2,7 @@ kind: epic
 title: Epic
 description: >-
   A slice of user value that covers one or more PRD requirements, written by
-  /epics as a product owner. Epics are tickets: they share the project's
+  /n-epics as a product owner. Epics are tickets: they share the project's
   number sequence with stories.
 path: epics/{key}-{n}-{slug}.md
 statuses:

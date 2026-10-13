@@ -60,11 +60,11 @@ sprints:
 
 ### Review
 
-<!-- Filled at /sprint close. -->
+<!-- Filled at /n-sprint close. -->
 
 ### Retro
 
-<!-- Filled at /sprint close. -->
+<!-- Filled at /n-sprint close. -->
 
 ## Sprint 1
 

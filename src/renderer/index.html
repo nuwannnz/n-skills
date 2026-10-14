@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src file:; style-src file: 'unsafe-inline'; img-src file: data:">
+  <title>scrumo</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <header class="titlebar">
+      <div class="tb-project" id="tbProject">No project</div>
+      <div class="tb-right">
+        <span class="engine" id="engineBadge" title="Which Claude Code installation and login the chat uses">Claude Code: checking…</span>
+        <button class="health" id="healthBtn" title="scrumo validate"><span class="dot" id="healthDot"></span><span id="healthText">Not checked</span></button>
+      </div>
+    </header>
+    <div class="body">
+      <aside class="sidebar">
+        <div class="sb-scroll" id="sidebar"></div>
+        <div class="sb-foot"><button class="btn small" id="openProject">Open project…</button></div>
+      </aside>
+      <main class="chat">
+        <div class="chat-head">
+          <h1>Chat</h1>
+          <span class="muted small" id="chatState"></span>
+          <button class="btn small" id="newChat">New chat</button>
+        </div>
+        <div class="thread" id="thread"><div class="thread-inner" id="threadInner"></div></div>
+        <div class="composer-wrap">
+          <div class="composer">
+            <textarea id="prompt" rows="3" placeholder="Describe what you need. For example: the clinic decided late cancellations cost a €15 fee, which unblocks PAW-9."></textarea>
+            <div class="composer-bar">
+              <select id="skill" aria-label="Skill"></select>
+              <label class="check-label"><input type="checkbox" id="autoEdits"> Approve doc edits automatically</label>
+              <button class="btn" id="stopBtn" hidden>Stop</button>
+              <button class="btn primary" id="sendBtn">Send</button>
+            </div>
+          </div>
+        </div>
+      </main>
+      <aside class="inspector">
+        <div class="insp-tabs" role="tablist">
+          <button role="tab" data-tab="doc" aria-selected="true">Document</button>
+          <button role="tab" data-tab="checks" aria-selected="false">Checks <span class="count" id="checksCount"></span></button>
+        </div>
+        <div class="insp-body" id="inspector"></div>
+      </aside>
+    </div>
+  </div>
+  <script src="../../node_modules/marked/marked.min.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

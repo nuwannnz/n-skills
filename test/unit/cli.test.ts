@@ -6,8 +6,9 @@ import { afterEach, describe, it } from 'node:test';
 import { moveCommand } from '../../src/cli/move.ts';
 import { newCommand } from '../../src/cli/new.ts';
 import { sprintCommand } from '../../src/cli/sprint.ts';
+import { impact, impactCommand } from '../../src/cli/impact.ts';
 import { schemaCommand } from '../../src/cli/schema.ts';
-import { board, statusCommand } from '../../src/cli/status.ts';
+import { board, statusCommand, workdays } from '../../src/cli/status.ts';
 import { fix, validate } from '../../src/validate/index.ts';
 import { EPIC3, Fixture, PRD, SAMPLE, STORY4, STORY6, STORY8, TRACKER } from '../support.ts';
 
@@ -23,14 +24,14 @@ afterEach(() => {
 });
 
 const scrumo = (args: string[], cwd: string) => spawnSync(process.execPath, [CLI, ...args], { cwd, encoding: 'utf8' });
-const noOptions = { title: undefined, epic: undefined, priority: undefined, requirements: undefined, dependsOn: undefined, today: '2026-10-13' };
+const noOptions = { title: undefined, epic: undefined, priority: undefined, requirements: undefined, dependsOn: undefined, foundIn: undefined, today: '2026-10-13' };
 
 describe('scrumo validate --fix', () => {
   it('repairs every fixable problem and stamps updated', () => {
     const f = fresh();
     f.write(PRD, f.read(PRD).replaceAll('\n', '\r\n').replace('# PawPlan Product Requirements', '# Wrong title'));
     f.edit(STORY4, 'status: done\npriority: P0', 'priority: P0\nstatus: done');
-    f.edit(STORY4, 'blocked_reason: null', 'blocked_reason: stale');
+    f.edit(STORY4, 'reason: null', 'reason: stale');
     f.edit(EPIC3, '_No stories yet._', '_Edited by hand._');
     f.edit(TRACKER, '| 2 | active |', '| 3 | active |');
     f.write(STORY8, `${f.read(STORY8).replace('## Technical Notes', '## Technical Notes  ')}`);
@@ -41,7 +42,7 @@ describe('scrumo validate --fix', () => {
     assert.ok(changed.includes(PRD) && changed.includes(STORY4) && changed.includes(EPIC3));
     assert.match(f.read(PRD), /^updated: 2026-10-13$/m);
     assert.match(f.read(STORY4), /^status: done$/m);
-    assert.match(f.read(STORY4), /^blocked_reason: null$/m);
+    assert.match(f.read(STORY4), /^reason: null$/m);
     assert.doesNotMatch(f.read(PRD), /\r/);
   });
 
@@ -63,11 +64,11 @@ describe('scrumo new', () => {
   it('creates an epic then a story, numbering them together and keeping generated blocks fresh', () => {
     const f = fresh();
     assert.equal(newCommand('epic', f.root, { ...noOptions, title: 'Billing: invoices', requirements: 'FR-001', priority: 'P1' }).code, 0);
-    assert.ok(f.read('docs/epics/PAW-11-billing-invoices.md').includes('priority: P1'));
-    assert.equal(newCommand('story', f.root, { ...noOptions, title: 'Pay an invoice', epic: 'PAW-11', dependsOn: 'PAW-8' }).code, 0);
-    assert.match(f.read('docs/stories/PAW-12-pay-an-invoice.md'), /^depends_on: \[PAW-8\]$/m);
-    assert.match(f.read('docs/epics/PAW-11-billing-invoices.md'), /\| PAW-12 \| Pay an invoice \| draft \| - \| - \|/);
-    assert.match(f.read(TRACKER), /\| PAW-12 \| Pay an invoice \| PAW-11 \| P2 \| - \| draft \|/);
+    assert.ok(f.read('docs/epics/PAW-13-billing-invoices.md').includes('priority: P1'));
+    assert.equal(newCommand('story', f.root, { ...noOptions, title: 'Pay an invoice', epic: 'PAW-13', dependsOn: 'PAW-8' }).code, 0);
+    assert.match(f.read('docs/stories/PAW-14-pay-an-invoice.md'), /^depends_on: \[PAW-8\]$/m);
+    assert.match(f.read('docs/epics/PAW-13-billing-invoices.md'), /\| PAW-14 \| Pay an invoice \| draft \| - \| - \|/);
+    assert.match(f.read(TRACKER), /\| PAW-14 \| Pay an invoice \| PAW-13 \| P2 \| - \| draft \|/);
     assert.deepEqual(f.findings(), []);
   });
 
@@ -82,7 +83,7 @@ describe('scrumo new', () => {
 
   it('creates every planning document as a valid draft in an empty project', () => {
     const f = fresh(null);
-    f.write('scrumo.yaml', 'schema_version: 1\ncli_version: 0.1.0\nproject:\n  name: Demo\n  key: DEMO\ndocs_dir: docs\nsprint:\n  length_days: 14\n  start_weekday: monday\nagents: [claude]\nskill_prefix: scrumo-\nignore: []\n');
+    f.write('scrumo.yaml', 'schema_version: 1\ncli_version: 0.1.0\nproject:\n  name: Demo\n  key: DEMO\ndocs_dir: docs\nsprint:\n  length_days: 14\n  start_weekday: monday\nagents: [claude]\nskill_prefix: scrumo-\nteam: []\nignore: []\n');
     mkdirSync(f.path('docs'));
     for (const kind of ['brief', 'prd', 'architecture', 'standards']) {
       assert.equal(newCommand(kind, f.root, { ...noOptions, today: '2026-10-13' }).code, 0, kind);
@@ -107,7 +108,7 @@ describe('scrumo process', () => {
   it('exits 0 and prints a summary for the sample project', () => {
     const result = scrumo(['validate', SAMPLE], process.cwd());
     assert.equal(result.status, 0, result.stderr);
-    assert.match(result.stdout, /no problems found in 15 files/);
+    assert.match(result.stdout, /no problems found in 17 files/);
   });
 
   it('exits 1 with grouped findings and machine-readable output', () => {
@@ -176,12 +177,12 @@ describe('scrumo move', () => {
     assert.equal(move(f, 'PAW-8', 'blocked').code, 2); // needs a reason
   });
 
-  it('sets and clears blocked_reason', () => {
+  it('sets and clears reason', () => {
     const f = fresh();
     assert.equal(move(f, 'PAW-8', 'blocked', { reason: 'Waiting on design' }).code, 0);
-    assert.match(f.read(STORY8), /^blocked_reason: "Waiting on design"$/m);
+    assert.match(f.read(STORY8), /^reason: "Waiting on design"$/m);
     assert.equal(move(f, 'PAW-8', 'ready').code, 0);
-    assert.match(f.read(STORY8), /^blocked_reason: null$/m);
+    assert.match(f.read(STORY8), /^reason: null$/m);
   });
 
   it('moves documents too', () => {
@@ -196,14 +197,15 @@ describe('scrumo status', () => {
     const result = board(SAMPLE)!;
     assert.equal(result.project.key, 'PAW');
     assert.equal(result.sprints.find((s) => s.status === 'active')!.points, 10);
-    assert.deepEqual(result.stories, { draft: 1, ready: 1, 'in-progress': 1, 'in-qa': 1, done: 2, blocked: 1 });
+    assert.deepEqual(result.stories, { draft: 1, ready: 2, 'in-progress': 1, 'in-qa': 1, done: 2, blocked: 1, cancelled: 1 });
+    assert.deepEqual(result.bugs, { open: 1, ids: ['PAW-12'], byPriority: { P0: 0, P1: 1, P2: 0, P3: 0 } });
     assert.ok(result.next[0]!.startsWith('/scrumo-qa PAW-6'));
     assert.match(statusCommand(SAMPLE, false).out, /Sprint 2 \(active\)/);
   });
 
   it('points at the first missing planning document in a new project', () => {
     const f = fresh(null);
-    f.write('scrumo.yaml', 'schema_version: 1\ncli_version: 0.1.0\nproject:\n  name: Demo\n  key: DEMO\ndocs_dir: docs\nsprint:\n  length_days: 14\n  start_weekday: monday\nagents: [claude]\nskill_prefix: scrumo-\nignore: []\n');
+    f.write('scrumo.yaml', 'schema_version: 1\ncli_version: 0.1.0\nproject:\n  name: Demo\n  key: DEMO\ndocs_dir: docs\nsprint:\n  length_days: 14\n  start_weekday: monday\nagents: [claude]\nskill_prefix: scrumo-\nteam: []\nignore: []\n');
     mkdirSync(f.path('docs'));
     assert.match(board(f.root)!.next[0]!, /^\/scrumo-kickoff/);
     newCommand('tracker', f.root, noOptions);
@@ -285,5 +287,138 @@ describe('scrumo validate --fix with missing sections', () => {
     fix(f.root, '2026-10-13');
     assert.deepEqual(f.findings(), []);
     assert.match(f.read(STORY8), /## Test Plan\n[\s\S]*## Dev Record\n[\s\S]*## QA Record\n/);
+  });
+});
+
+describe('bugs and cancelled stories', () => {
+  it('scrumo new bug creates a story of type bug linked to where it was found', () => {
+    const f = fresh();
+    const made = newCommand('bug', f.root, { ...noOptions, title: 'Booking page crashes on Mondays', foundIn: 'PAW-4', priority: 'P0' });
+    assert.equal(made.code, 0, made.out);
+    const text = f.read('docs/stories/PAW-13-booking-page-crashes-on-mondays.md');
+    assert.match(text, /^type: bug$/m);
+    assert.match(text, /^epic: PAW-1$/m, 'defaults to the epic of the story it was found in');
+    assert.match(text, /^found_in: PAW-4$/m);
+    assert.match(f.read(TRACKER), /\| PAW-13 \| Booking page crashes on Mondays \| PAW-1 \| P0 \| - \| draft \|/);
+    assert.deepEqual(f.findings(), []);
+    assert.equal(newCommand('bug', f.root, { ...noOptions, title: 'No origin' }).code, 2);
+    assert.equal(newCommand('bug', f.root, { ...noOptions, title: 'Bad', foundIn: 'PAW-99' }).code, 1);
+    assert.equal(newCommand('story', f.root, { ...noOptions, title: 'Not a bug', epic: 'PAW-1', foundIn: 'PAW-4' }).code, 2);
+  });
+
+  const STORY10 = 'docs/stories/PAW-10-appointment-reminder.md';
+
+  it('cancelling needs a reason, and the story disappears from the backlog', () => {
+    const f = fresh();
+    assert.equal(move(f, 'PAW-10', 'cancelled').code, 2);
+    const done = move(f, 'PAW-10', 'cancelled', { reason: 'Email reminders are out of scope' });
+    assert.equal(done.code, 0, done.out);
+    assert.match(f.read(STORY10), /^status: cancelled$/m);
+    assert.match(f.read(STORY10), /^reason: "Email reminders are out of scope"$/m);
+    const backlog = /<!-- scrumo:generated:backlog -->[\s\S]*?<!-- scrumo:end -->/.exec(f.read(TRACKER))![0];
+    assert.ok(!backlog.includes('PAW-10'));
+    assert.deepEqual(f.findings(), []);
+    const back = move(f, 'PAW-10', 'draft');
+    assert.equal(back.code, 0, back.out);
+    assert.match(f.read(STORY10), /^reason: null$/m);
+  });
+
+  it('cancelling a committed story takes it out of its sprint, but not while others depend on it', () => {
+    const f = fresh();
+    const blocked = move(f, 'PAW-8', 'cancelled', { reason: 'Replaced' });
+    assert.equal(blocked.code, 1);
+    assert.match(blocked.out, /SCRUMO614/); // PAW-9 and PAW-10 depend on PAW-8
+    assert.match(f.read(STORY8), /^status: ready$/m);
+    assert.equal(move(f, 'PAW-7', 'cancelled', { reason: 'x' }).code, 1); // in-progress cannot be cancelled
+  });
+});
+
+describe('scrumo impact', () => {
+  it('lists the epics and stories a requirement touches', () => {
+    const found = impact(SAMPLE, 'FR-004')!;
+    assert.equal(found.kind, 'functional requirement');
+    assert.deepEqual(found.epics.map((e) => e.id), ['PAW-2']);
+    assert.deepEqual(found.stories.map((s) => s.id), ['PAW-7', 'PAW-8', 'PAW-9', 'PAW-10', 'PAW-11']);
+    assert.equal(found.stories.find((s) => s.id === 'PAW-7')!.assignee, 'alex');
+  });
+
+  it('follows architecture decisions, NFRs, and ticket links', () => {
+    assert.deepEqual(impact(SAMPLE, 'AD-002')!.stories.map((s) => s.id), ['PAW-7', 'PAW-8']);
+    assert.match(impact(SAMPLE, 'NFR-001')!.notes.join(' '), /Architecture approach/);
+    const story = impact(SAMPLE, 'PAW-4')!;
+    assert.deepEqual(story.stories.map((s) => s.id), ['PAW-5', 'PAW-12']);
+    assert.match(story.notes.join(' '), /Bugs found in it: PAW-12/);
+    assert.equal(impact(SAMPLE, 'PAW-12')!.kind, 'bug');
+    assert.equal(impact(SAMPLE, 'FR-999'), undefined);
+  });
+
+  it('prints text and JSON', () => {
+    assert.match(impactCommand('FR-004', SAMPLE, false).out, /PAW-7 {2}in-progress, sprint 2, alex/);
+    assert.equal(JSON.parse(impactCommand('PAW-1', SAMPLE, true).out).kind, 'epic');
+    assert.equal(impactCommand('PAW-99', SAMPLE, false).code, 1);
+  });
+});
+
+describe('scrumo status at a glance', () => {
+  // Sprint 2 in the sample project runs Monday 2026-09-28 to Friday 2026-10-09: 10 working days.
+  it('counts working days, skipping weekends', () => {
+    assert.equal(workdays('2026-09-28', '2026-10-09'), 10);
+    assert.equal(workdays('2026-10-03', '2026-10-04'), 0);
+    assert.equal(workdays('2026-10-02', '2026-10-05'), 2);
+  });
+
+  it('compares progress with the calendar', () => {
+    const sprintAt = (today: string) => board(SAMPLE, today)!.sprints.find((s) => s.status === 'active')!;
+    assert.deepEqual(sprintAt('2026-10-02').days, { total: 10, elapsed: 5, left: 5 });
+    assert.equal(sprintAt('2026-10-02').pace!.expectedPct, 50);
+    assert.equal(sprintAt('2026-10-02').pace!.actualPct, 0);
+    assert.equal(sprintAt('2026-10-02').pace!.verdict, 'at risk');
+    assert.equal(sprintAt('2026-09-27').pace!.verdict, 'not started');
+    assert.equal(sprintAt('2026-10-12').pace!.verdict, 'overdue');
+    assert.equal(sprintAt('2026-10-12').days!.left, 0);
+  });
+
+  it('shows who has what, blockers, and what needs attention', () => {
+    const b = board(SAMPLE, '2026-10-07')!;
+    const sprint = b.sprints.find((s) => s.status === 'active')!;
+    assert.deepEqual(sprint.people.map((p) => [p.name, p.stories, p.points, p.capacity]), [['alex', 1, 5, 5], ['sam', 1, 2, 4], ['jo', 0, 0, null], ['unassigned', 1, 3, null]]);
+    assert.ok(b.attention.some((a) => /Sprint 2 is at risk/.test(a)));
+    assert.ok(b.attention.some((a) => /P1 bug PAW-12 is not in the active sprint/.test(a)));
+    assert.ok(b.attention.some((a) => /PAW-9 is blocked: The clinic/.test(a)));
+    assert.deepEqual(b.requirements, { total: 7, covered: 7, uncovered: [] });
+    assert.deepEqual(b.velocity, { history: [6], average: 6, readySprints: 0.2 });
+    assert.deepEqual(b.epicProgress.map((e) => [e.id, e.doneStories, e.stories]), [['PAW-1', 2, 4], ['PAW-2', 0, 4], ['PAW-3', 0, 0]]);
+    assert.deepEqual(b.bugs.byPriority, { P0: 0, P1: 1, P2: 0, P3: 0 });
+  });
+
+  it('reports validation health in the headline and as an attention item', () => {
+    const f = fresh();
+    f.edit(STORY8, '(AC-3)', '(AC-1)');
+    const out = statusCommand(f.root, false, 'all', '2026-10-07').out;
+    assert.match(out.split('\n')[0]!, /✖ 1 validation error/);
+    assert.match(out, /! 1 validation error: run scrumo validate/);
+  });
+
+  it('can show only the sprint or only the project', () => {
+    const sprintOnly = statusCommand(SAMPLE, false, 'sprint', '2026-10-07').out;
+    assert.match(sprintOnly, /Progress {2}░+ 0 of 10 committed points done/);
+    assert.doesNotMatch(sprintOnly, /Epics:/);
+    const projectOnly = statusCommand(SAMPLE, false, 'project', '2026-10-07').out;
+    assert.match(projectOnly, /Epics:\n {2}PAW-1 {2}█+░* 2\/4 stories/);
+    assert.doesNotMatch(projectOnly, /Progress/);
+    assert.deepEqual(Object.keys(JSON.parse(statusCommand(SAMPLE, true, 'all', '2026-10-07').out)).slice(0, 3), ['project', 'documents', 'epics']);
+  });
+
+  it('a closed sprint and an empty project still read sensibly', () => {
+    const f = fresh();
+    sprintCommand('close', '2', f.root, { goal: undefined, capacity: undefined, start: undefined, end: undefined, stories: undefined, today: '2026-10-13' });
+    const out = statusCommand(f.root, false, 'all', '2026-10-13').out;
+    assert.match(out, /Velocity: 6, 0 /);
+    const none = fresh(null);
+    none.write('scrumo.yaml', 'schema_version: 1\ncli_version: 0.1.0\nproject:\n  name: Demo\n  key: DEMO\ndocs_dir: docs\nsprint:\n  length_days: 14\n  start_weekday: monday\nagents: [claude]\nskill_prefix: scrumo-\nteam: []\nignore: []\n');
+    mkdirSync(none.path('docs'));
+    const empty = statusCommand(none.root, false, 'all', '2026-10-13').out;
+    assert.match(empty, /No sprints yet\./);
+    assert.match(empty, /Velocity: no closed sprints yet/);
   });
 });

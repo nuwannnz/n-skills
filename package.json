@@ -1,21 +1,44 @@
 {
   "name": "scrumo",
   "version": "0.1.0",
-  "private": true,
   "description": "Agent skills and a strict Markdown validator for agile engineering teams: spec-driven, with every document checked.",
+  "keywords": [
+    "agile",
+    "scrum",
+    "spec-driven",
+    "agent-skills",
+    "ai-agents",
+    "claude-code",
+    "codex",
+    "cursor",
+    "validator",
+    "cli"
+  ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nuwannnz/n-skills.git"
+  },
+  "bugs": {
+    "url": "https://github.com/nuwannnz/n-skills/issues"
+  },
+  "homepage": "https://github.com/nuwannnz/n-skills#readme",
   "type": "module",
   "bin": {
     "scrumo": "dist/cli.js"
   },
   "files": [
     "dist",
+    "!dist/**/*.map",
     "spec",
     "skills",
     "templates"
   ],
   "engines": {
     "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",

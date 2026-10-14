@@ -26,6 +26,7 @@ interface Config {
   docs_dir: string;
   agents: string[];
   skill_prefix: string;
+  team?: unknown[];
 }
 
 const flow = (items: string[]) => `[${items.join(', ')}]`;
@@ -57,6 +58,7 @@ function apply(root: string, options: InstallOptions, update: boolean): { code: 
 
   if (chosen.join() !== config.agents.join()) text = setYamlKey(text, 'agents', flow(chosen));
   if (prefix !== config.skill_prefix) text = addYamlKey(text, 'skill_prefix', prefix, 'agents');
+  if (config.team === undefined) text = addYamlKey(text, 'team', '[]', 'skill_prefix');
   if (version !== config.cli_version) text = setYamlKey(text, 'cli_version', version);
   if (text !== readFileSync(path, 'utf8')) writeFileSync(path, text);
 
@@ -93,6 +95,7 @@ export function initCommand(cwd: string, options: InstallOptions): { code: numbe
       '  start_weekday: monday',
       `agents: ${flow(chosen.length ? chosen : ['claude'])}`,
       `skill_prefix: ${prefix}`,
+      'team: []',
       'ignore: []',
       '',
     ].join('\n');
@@ -110,7 +113,7 @@ export function initCommand(cwd: string, options: InstallOptions): { code: numbe
   const result = apply(root, options, false);
   const first = existing ? '' : `created scrumo.yaml and ${config.docs_dir}/ in ${root}\n`;
   const prefix = options.prefix ?? config.skill_prefix ?? 'scrumo-';
-  const next = `\nNext: run /${prefix}kickoff in your agent. The skills call \`npx scrumo\`, so install the CLI too: npm install --save-dev ${packageInfo().name}\n`;
+  const next = `\nNext: add your team (scrumo team add --me, then one scrumo team add <id> --name "Full Name" per teammate), then run /${prefix}kickoff in your agent. The skills call \`npx scrumo\`, so install the CLI too: npm install --save-dev ${packageInfo().name}\n`;
   return { code: result.code, out: first + result.out + next };
 }
 

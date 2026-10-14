@@ -92,7 +92,7 @@ export function generate(project: Project, doc: Doc, block: string): string[] | 
     const epicPriority = new Map(project.docs.filter((d) => d.kind === 'epic').map((d) => [text(d.fm?.id), text(d.fm?.priority)]));
     const rank = (value: string | undefined): string => value ?? 'P9';
     const backlog = all
-      .filter((story) => story.sprint === null)
+      .filter((story) => story.sprint === null && story.status !== 'cancelled')
       .sort((a, b) => rank(a.priority).localeCompare(rank(b.priority)) || rank(epicPriority.get(a.epic)).localeCompare(rank(epicPriority.get(b.epic))) || idNumber(a.id) - idNumber(b.id));
     return table(['ID', 'Title', 'Epic', 'Priority', 'Points', 'Status'], backlog.map((s) => [s.id, s.title, s.epic, s.priority, s.points, s.status]), '_The backlog is empty._');
   }

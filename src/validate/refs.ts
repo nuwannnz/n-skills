@@ -44,6 +44,8 @@ export function checkRefs(project: Project, report: Report): void {
         else if (target.kind !== kind) report('SCRUMO502', doc.file, `${field} ${value} is a ${target.kind}, not a ${kind}`);
       };
       ref(fm.epic, 'epic', 'epic');
+      ref(fm.found_in, 'story', 'found_in');
+      if (fm.found_in === fm.id) report('SCRUMO502', doc.file, 'found_in cannot be the story itself');
       if (Array.isArray(fm.depends_on)) fm.depends_on.forEach((id) => ref(id, 'story', 'depends_on'));
       if (typeof fm.sprint === 'number' && !sprintNumbers.has(fm.sprint)) report('SCRUMO505', doc.file, `sprint ${fm.sprint} isn't in the sprint tracker`);
 

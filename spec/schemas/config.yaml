@@ -53,6 +53,41 @@ frontmatter:
     description: >-
       Prefix on every installed skill's name, such as scrumo- for /scrumo-prd. It must
       end with a hyphen. Changing it and running scrumo update renames the skills.
+  - name: team
+    type: list
+    description: >-
+      The people on the project. Once it has at least one member, every open
+      story's assignee must be one of them. Managed with scrumo team add,
+      set and remove.
+    items:
+      type: object
+      fields:
+        - name: id
+          type: string
+          pattern: '^[a-z][a-z0-9._-]{0,31}$'
+          description: The handle used in a story's assignee field. Lowercase.
+        - name: name
+          type: string
+          description: Display name.
+        - name: roles
+          type: list
+          items:
+            type: enum
+            values: [owner, scrum-master, architect, dev, qa]
+          description: >-
+            What this person does on the team. Labels for people and skills to
+            read; they don't restrict anyone.
+        - name: points
+          type: integer
+          min: 0
+          nullable: true
+          description: Typical story points this person finishes in a sprint. Sprint planning adds these up for a capacity suggestion.
+        - name: emails
+          type: list
+          items:
+            type: string
+            pattern: '^[^@\s]+@[^@\s]+$'
+          description: Git emails that identify this person, so scrumo team whoami can tell who is working.
   - name: ignore
     type: list
     items:

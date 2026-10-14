@@ -1,6 +1,7 @@
 ---
 id: PAW-6
 title: Reset a forgotten password
+type: story
 epic: PAW-1
 status: in-qa
 priority: P1
@@ -8,7 +9,8 @@ points: 2
 sprint: 2
 assignee: sam
 depends_on: [PAW-5]
-blocked_reason: null
+found_in: null
+reason: null
 created: 2026-09-12
 updated: 2026-10-08
 ---

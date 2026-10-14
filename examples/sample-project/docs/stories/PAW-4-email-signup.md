@@ -1,6 +1,7 @@
 ---
 id: PAW-4
 title: Sign up with email
+type: story
 epic: PAW-1
 status: done
 priority: P0
@@ -8,7 +9,8 @@ points: 3
 sprint: 1
 assignee: alex
 depends_on: []
-blocked_reason: null
+found_in: null
+reason: null
 created: 2026-09-12
 updated: 2026-09-24
 ---

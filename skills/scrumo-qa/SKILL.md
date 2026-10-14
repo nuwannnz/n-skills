@@ -64,6 +64,8 @@ Verify:
 - Never mark PASS without evidence you saw yourself.
 - Don't edit old rounds. History stays.
 - A passing suite with an untested AC is still a FAIL.
+- A defect outside the story under test, or in a story that is already done, is
+  a separate ticket: use `/scrumo-bug`.
 
 ## Hand-off
 

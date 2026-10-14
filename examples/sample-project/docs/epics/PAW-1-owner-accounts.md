@@ -5,7 +5,7 @@ status: in-progress
 priority: P0
 requirements: [FR-001, FR-002]
 created: 2026-09-12
-updated: 2026-09-28
+updated: 2026-10-06
 ---
 
 # Owner accounts
@@ -42,6 +42,7 @@ belongs to a known person and their pets.
 | PAW-4 | Sign up with email | done | 3 | 1 |
 | PAW-5 | Log in and log out | done | 3 | 1 |
 | PAW-6 | Reset a forgotten password | in-qa | 2 | 2 |
+| PAW-12 | Sign-up keeps a trailing space in the email | ready | 1 | - |
 
 <!-- scrumo:end -->
 

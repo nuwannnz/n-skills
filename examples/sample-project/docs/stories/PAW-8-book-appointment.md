@@ -1,6 +1,7 @@
 ---
 id: PAW-8
 title: Book an appointment
+type: story
 epic: PAW-2
 status: ready
 priority: P0
@@ -8,7 +9,8 @@ points: 3
 sprint: 2
 assignee: null
 depends_on: [PAW-7]
-blocked_reason: null
+found_in: null
+reason: null
 created: 2026-09-15
 updated: 2026-09-26
 ---

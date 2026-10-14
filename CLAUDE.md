@@ -17,8 +17,8 @@ and file names, so write the product name in full, as `scrumo`, not in fragments
 `PLAN.md` is the design and the phase plan, so read it before making structural
 changes.
 
-Status: phases 0 to 4 are built. The 10 skills were dry-run once by a fresh
-agent; runs in other agents are still to do. Not done: the starter template
+Status: phases 0 to 4 are built. The first 10 skills were dry-run once by a fresh
+agent (the bug, refine and change skills haven't been); runs in other agents are still to do. Not done: the starter template
 repo and publishing (owner's calls).
 
 ## Commands
@@ -57,7 +57,7 @@ Node's built-in type stripping. The published CLI targets Node 20.
   generated blocks, and `index.ts` ties it together and applies `--fix`. Every
   finding is reported through a rule code that must exist in `spec/rules.yaml`.
   `src/cli.ts` and `src/cli/` are the `scrumo` commands.
-- **`skills/scrumo-*/SKILL.md`** are the 10 agent skills, all prefixed `scrumo-`. Every
+- **`skills/scrumo-*/SKILL.md`** are the 13 agent skills, all prefixed `scrumo-`. Every
   one uses the same section skeleton and an identical `Exit: validate`
   section, stays under 150 lines, and refers only to skills and `scrumo` commands
   that exist; `test/unit/skills.test.ts` enforces that. Skills learn structure

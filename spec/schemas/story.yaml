@@ -1,19 +1,21 @@
 kind: story
 title: Story
 description: >-
-  One user-visible change small enough for a single sprint, written by
-  /scrumo-stories, built by /scrumo-dev, and verified by /scrumo-qa. Acceptance criteria are the
+  One user-visible change small enough for a single sprint, or a bug (type:
+  bug) that is planned the same way. Written by /scrumo-stories or
+  /scrumo-bug, built by /scrumo-dev, and verified by /scrumo-qa. Acceptance criteria are the
   spec: tasks, tests and the QA record all cite their AC IDs.
 path: stories/{key}-{n}-{slug}.md
 statuses:
-  values: [draft, ready, in-progress, in-qa, done, blocked]
+  values: [draft, ready, in-progress, in-qa, done, blocked, cancelled]
   transitions:
-    draft: [ready, blocked]
-    ready: [draft, in-progress, blocked]
+    draft: [ready, blocked, cancelled]
+    ready: [draft, in-progress, blocked, cancelled]
     in-progress: [in-qa, blocked]
     in-qa: [done, in-progress, blocked]
     done: [in-progress]
-    blocked: [draft, ready, in-progress, in-qa]
+    blocked: [draft, ready, in-progress, in-qa, cancelled]
+    cancelled: [draft]
 frontmatter:
   - name: id
     type: ticket-id
@@ -21,13 +23,17 @@ frontmatter:
   - name: title
     type: string
     description: Short, user-facing name. The H1 must match it exactly.
+  - name: type
+    type: enum
+    values: [story, bug]
+    description: story for new behaviour, bug for something that should already work and doesn't. Bugs are planned, built and verified exactly like stories.
   - name: epic
     type: ticket-ref
     ref: epic
     description: The epic this story belongs to.
   - name: status
     type: enum
-    values: [draft, ready, in-progress, in-qa, done, blocked]
+    values: [draft, ready, in-progress, in-qa, done, blocked, cancelled]
     description: Changed only with scrumo move, which checks the transition and its gate.
   - name: priority
     type: enum
@@ -53,10 +59,15 @@ frontmatter:
       type: ticket-ref
       ref: story
     description: Stories that must be done first. /scrumo-sprint plan won't commit a story ahead of them.
-  - name: blocked_reason
+  - name: found_in
+    type: ticket-ref
+    ref: story
+    nullable: true
+    description: For a bug, the story whose behaviour is broken. null for stories and for bugs with no clear origin.
+  - name: reason
     type: string
     nullable: true
-    description: Why the story is blocked. Set only while status is blocked.
+    description: Why the story is blocked or cancelled. Set only in those two statuses.
   - name: created
     type: date
     description: Set by scrumo new.

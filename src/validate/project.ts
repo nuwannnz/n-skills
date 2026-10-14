@@ -6,7 +6,7 @@ import { loadSpec } from '../spec/load.ts';
 import type { Schema } from '../spec/types.ts';
 import { parseDoc, type Doc } from './doc.ts';
 import { checkFields } from './frontmatter.ts';
-import type { Config, Finding, Project, Report } from './types.ts';
+import type { Config, Finding, Project, Report, TeamMember } from './types.ts';
 
 export function findRoot(from: string): string | undefined {
   let dir = resolve(from);
@@ -73,7 +73,13 @@ export function loadProject(root: string, report: Report): Project | undefined {
   });
   if (!valid || typeof data.docs_dir !== 'string') return undefined;
 
-  const config: Config = { key, docsDir: data.docs_dir, ignore: Array.isArray(data.ignore) ? (data.ignore as string[]) : [] };
+  const team = Array.isArray(data.team) ? (data.team as TeamMember[]) : [];
+  const seen = new Set<string>();
+  for (const member of team) {
+    if (seen.has(member.id)) report('SCRUMO104', configFile, `team member "${member.id}" appears more than once`);
+    seen.add(member.id);
+  }
+  const config: Config = { key, docsDir: data.docs_dir, ignore: Array.isArray(data.ignore) ? (data.ignore as string[]) : [], team };
   const docsRoot = join(root, config.docsDir);
   if (!existsSync(docsRoot)) {
     report('SCRUMO104', configFile, `docs_dir "${config.docsDir}" does not exist`);

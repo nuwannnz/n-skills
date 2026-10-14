@@ -79,7 +79,7 @@ describe('scrumo init', () => {
     assert.equal(initCommand(f.root, options()).code, 0);
     const again = initCommand(f.root, options({ key: undefined }));
     assert.equal(again.code, 0);
-    assert.match(again.out, /0 added, 0 updated, 10 unchanged/);
+    assert.match(again.out, new RegExp(`0 added, 0 updated, ${ALL.length} unchanged`));
   });
 
   it('guesses agents from what the repository already has', () => {
@@ -157,14 +157,14 @@ describe('scrumo update and install', () => {
     assert.deepEqual(listing(f.root, '.claude/skills'), skillNames().map((n) => `acme-${n}`).sort());
     assert.match(f.read('scrumo.yaml'), /^skill_prefix: acme-$/m);
     assert.match(f.read('AGENTS.md'), /\/acme-kickoff/);
-    assert.match(result.out, /10 added, 0 updated, 0 unchanged, 10 removed/);
+    assert.match(result.out, new RegExp(`${ALL.length} added, 0 updated, 0 unchanged, ${ALL.length} removed`));
     assert.deepEqual(validate(f.root).findings, []);
   });
 
   it('adding an agent installs where it is missing, and dropping one removes only unedited files', () => {
     const f = setup();
     installCommand('install', f.root, options({ agents: 'claude,codex' }));
-    assert.deepEqual(listing(f.root, '.agents/skills').length, 10);
+    assert.equal(listing(f.root, '.agents/skills').length, ALL.length);
     installCommand('install', f.root, options({ agents: 'claude' }));
     assert.ok(!existsSync(f.path('.agents')), 'unedited files and the empty folders are gone');
   });
@@ -191,7 +191,7 @@ describe('older scrumo.yaml', () => {
     f.write('scrumo.yaml', 'schema_version: 1\ncli_version: 0.1.0\nproject:\n  name: Demo\n  key: DEMO\ndocs_dir: docs\nsprint:\n  length_days: 14\n  start_weekday: monday\nagents: [claude]\nignore: []\n');
     mkdirSync(f.path('docs'));
     assert.equal(installCommand('update', f.root, options()).code, 0);
-    assert.match(f.read('scrumo.yaml'), /agents: \[claude\]\nskill_prefix: scrumo-\nignore: \[\]/);
+    assert.match(f.read('scrumo.yaml'), /agents: \[claude\]\nskill_prefix: scrumo-\nteam: \[\]\nignore: \[\]/);
     assert.deepEqual(validate(f.root).findings, []);
   });
 });

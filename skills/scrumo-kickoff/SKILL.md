@@ -24,7 +24,7 @@ The user's description of the idea, in their own words. An existing brief or
 
 ## Outputs
 
-`scrumo.yaml`, the docs folder, and `brief.md` (status `draft`, then `approved`).
+`scrumo.yaml`, the team roster, the docs folder, and `brief.md` (status `draft`, then `approved`).
 
 ## Prerequisite: the scrumo CLI
 
@@ -50,10 +50,17 @@ block of AGENTS.md (otherwise ask for the package name), and wait.
    `npx scrumo init --key <KEY> --name "<product name>" --agents <agents>`, where
    the agents are the ones this repository uses (such as `claude,codex`). It
    creates `scrumo.yaml` and the docs folder, installs the skills, and adds the
-   workflow rules to AGENTS.md. If the project already has `scrumo.yaml`, skip this.
-6. Run `npx scrumo new brief`, read `npx scrumo schema brief`, and fill Idea,
+   workflow rules to AGENTS.md. If the project already has `scrumo.yaml` (a
+   starter repo, say), check `project.name` and `project.key` with the user. While
+   there are no tickets yet, fix them by editing `scrumo.yaml`.
+6. Ask who is on the team: a handle, full name, role (`owner`, `scrum-master`,
+   `architect`, `dev`, `qa`), and typical points per sprint for each person. Add
+   them with `npx scrumo team add <id> --name "Full Name" --roles dev,qa --points 5`,
+   or `npx scrumo team add --me` for the person you are talking to. Stories can
+   only be assigned to people on the team.
+7. Run `npx scrumo new brief`, read `npx scrumo schema brief`, and fill Idea,
    Problem, Target Users, Goals, and Constraints from what the user said.
-7. Show the brief to the user. When they sign off, run
+8. Show the brief to the user. When they sign off, run
    `npx scrumo move brief approved`.
 
 ## Quality bar

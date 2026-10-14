@@ -40,6 +40,7 @@ sprints:
 | ID | Title | Epic | Priority | Points | Status |
 | --- | --- | --- | --- | --- | --- |
 | PAW-9 | Cancel an appointment | PAW-2 | P1 | 2 | blocked |
+| PAW-12 | Sign-up keeps a trailing space in the email | PAW-1 | P1 | 1 | ready |
 | PAW-10 | Get a reminder before an appointment | PAW-2 | P2 | - | draft |
 
 <!-- scrumo:end -->

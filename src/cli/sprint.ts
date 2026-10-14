@@ -124,7 +124,7 @@ export function sprintCommand(sub: string | undefined, arg: string | undefined, 
     today,
     (_p, write) => {
       write(tracker.file, setField(setField(tracker.text, 'sprints', sprintsYaml(replace({ status: 'closed', completed: donePoints }))), 'updated', today));
-      for (const s of carried) write(project!.tickets.get(s.id)!.file, storyText(s.id, { status: 'ready', sprint: 'null', assignee: 'null', blocked_reason: 'null' }));
+      for (const s of carried) write(project!.tickets.get(s.id)!.file, storyText(s.id, { status: 'ready', sprint: 'null', assignee: 'null', reason: 'null' }));
       for (const id of epicsDone) write(project!.tickets.get(id)!.file, setField(setField(project!.tickets.get(id)!.text, 'status', 'done'), 'updated', today));
     },
     (f) => f.file === tracker.file && (f.code === 'SCRUMO409' || f.code === 'SCRUMO411'),

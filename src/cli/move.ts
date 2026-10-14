@@ -31,14 +31,15 @@ export function moveCommand(target: string | undefined, status: string | undefin
   if (current === status) return { code: 1, out: `${target} is already ${status}.\n` };
   const allowed = schema.statuses.transitions[current] ?? [];
   if (!allowed.includes(status)) return { code: 1, out: `Can't move ${target} from ${current} to ${status}. From ${current} it can go to: ${allowed.join(', ') || 'nowhere'}.\n` };
-  if (status === 'blocked' && !options.reason) return { code: 2, out: 'Moving to blocked needs --reason "why it is blocked".\n' };
+  if ((status === 'blocked' || status === 'cancelled') && !options.reason) return { code: 2, out: `Moving to ${status} needs --reason "why".\n` };
   if (options.assignee && doc.kind !== 'story') return { code: 2, out: '--assignee only applies to stories.\n' };
 
   const outcome = transaction(root, today, () => {
     let text = setField(doc.text, 'status', status);
     if (doc.kind === 'story') {
-      if (status === 'blocked') text = setField(text, 'blocked_reason', yamlString(options.reason!));
-      else if (current === 'blocked') text = setField(text, 'blocked_reason', 'null');
+      if (status === 'blocked' || status === 'cancelled') text = setField(text, 'reason', yamlString(options.reason!));
+      else if (current === 'blocked' || current === 'cancelled') text = setField(text, 'reason', 'null');
+      if (status === 'cancelled') text = setField(text, 'sprint', 'null');
       if (options.assignee) text = setField(text, 'assignee', yamlString(options.assignee));
     }
     writeFileSync(join(root, doc.file), setField(text, 'updated', today));

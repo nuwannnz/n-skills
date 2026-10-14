@@ -1,6 +1,7 @@
 ---
 id: PAW-5
 title: Log in and log out
+type: story
 epic: PAW-1
 status: done
 priority: P0
@@ -8,7 +9,8 @@ points: 3
 sprint: 1
 assignee: sam
 depends_on: [PAW-4]
-blocked_reason: null
+found_in: null
+reason: null
 created: 2026-09-12
 updated: 2026-09-25
 ---

@@ -8,10 +8,10 @@ import { loadSpec } from '../../src/spec/load.ts';
 
 const DIR = new URL('../../skills/', import.meta.url).pathname;
 const spec = loadSpec();
-const EXPECTED = ['validate', 'kickoff', 'prd', 'architecture', 'standards', 'epics', 'stories', 'sprint', 'dev', 'qa'].map((name) => `scrumo-${name}`);
+const EXPECTED = ['validate', 'kickoff', 'prd', 'architecture', 'standards', 'epics', 'stories', 'sprint', 'dev', 'qa', 'bug', 'refine', 'change'].map((name) => `scrumo-${name}`);
 const SECTIONS = ['Role', 'When to use', 'Inputs', 'Outputs', 'Prerequisite: the scrumo CLI', 'Procedure', 'Quality bar', 'Hand-off', 'Exit: validate'];
-const COMMANDS = ['init', 'validate', 'schema', 'new', 'move', 'status', 'sprint', '--version'];
-const NEW_TYPES = ['brief', 'prd', 'architecture', 'standards', 'tracker', 'epic', 'story'];
+const COMMANDS = ['init', 'validate', 'schema', 'new', 'move', 'status', 'sprint', 'impact', 'team', '--version'];
+const NEW_TYPES = ['brief', 'prd', 'architecture', 'standards', 'tracker', 'epic', 'story', 'bug'];
 const STATUSES = new Set([...spec.schemas.values()].flatMap((s) => s.statuses?.values ?? []));
 
 const skills = readdirSync(DIR, { withFileTypes: true }).filter((e) => e.isDirectory()).map((e) => e.name).sort();
@@ -55,6 +55,7 @@ describe('skills', () => {
           const clean = kind!.replace(/[`.,]/g, '');
           assert.ok(clean === 'rules' || clean === '<kind>' || clean === 'tracker' || spec.schemas.has(clean), `unknown schema ${clean}`);
         }
+        for (const [, sub] of text.matchAll(/scrumo team (\w+)/g)) assert.ok(['list', 'add', 'set', 'remove', 'whoami'].includes(sub!), `unknown scrumo team ${sub}`);
         for (const [, sub] of text.matchAll(/scrumo sprint (\w+)/g)) assert.ok(['plan', 'start', 'close'].includes(sub!), `unknown scrumo sprint ${sub}`);
         for (const [, type] of text.matchAll(/scrumo new (\S+)/g)) assert.ok(NEW_TYPES.includes(type!.replace(/[`.,]/g, '')), `unknown scrumo new type ${type}`);
         for (const [, status] of text.matchAll(/scrumo move (?:<[^>]+>|\S+) (\S+)/g)) assert.ok(STATUSES.has(status!.replace(/[`.,]/g, '')), `unknown status ${status}`);

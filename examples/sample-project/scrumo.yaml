@@ -9,4 +9,20 @@ sprint:
   start_weekday: monday
 agents: [claude, codex, cursor]
 skill_prefix: scrumo-
+team:
+  - id: alex
+    name: Alex Rivera
+    roles: [dev]
+    points: 5
+    emails: [alex@pawplan.example]
+  - id: sam
+    name: Sam Okoye
+    roles: [dev, qa]
+    points: 4
+    emails: [sam@pawplan.example]
+  - id: jo
+    name: Jo Marsh
+    roles: [owner]
+    points: null
+    emails: []
 ignore: []

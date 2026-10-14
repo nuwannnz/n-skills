@@ -201,11 +201,11 @@ rules:
   - code: SCRUMO607
     severity: error
     fixable: true
-    summary: blocked_reason must be set while blocked and null otherwise (--fix clears a stale reason).
+    summary: reason must be set while a story is blocked or cancelled and null otherwise (--fix clears a stale reason).
   - code: SCRUMO608
     severity: error
     fixable: false
-    summary: Epic status is inconsistent with its stories (done needs every story done).
+    summary: Epic status is inconsistent with its stories (done needs every story that isn't cancelled to be done, and at least one).
   - code: SCRUMO609
     severity: error
     fixable: false
@@ -222,6 +222,20 @@ rules:
     severity: error
     fixable: false
     summary: Story is committed to a sprint ahead of a story it depends on.
+
+  - code: SCRUMO613
+    severity: error
+    fixable: false
+    summary: Story is cancelled but still committed to a sprint.
+  - code: SCRUMO614
+    severity: error
+    fixable: false
+    summary: Story depends on a story that is cancelled.
+
+  - code: SCRUMO615
+    severity: error
+    fixable: false
+    summary: Story is assigned to someone who isn't on the team in scrumo.yaml (checked for stories that aren't done or cancelled, once the team has a member).
 
   # Generated content
   - code: SCRUMO701

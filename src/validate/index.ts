@@ -171,8 +171,8 @@ function fixDoc(project: Project, doc: Doc): string {
   lines = fixKeyOrder(lines, schema.frontmatter.map((f) => f.name!));
   text = lines.join('\n');
   current = parseDoc(doc.file, doc.rel, doc.kind, text);
-  if (doc.kind === 'story' && current.fm?.status !== 'blocked' && current.fmKeyLines.has('blocked_reason') && current.fm?.blocked_reason !== null) {
-    text = setField(text, 'blocked_reason', 'null');
+  if (doc.kind === 'story' && current.fm?.status !== 'blocked' && current.fm?.status !== 'cancelled' && current.fmKeyLines.has('reason') && current.fm?.reason !== null) {
+    text = setField(text, 'reason', 'null');
   }
   return text;
 }

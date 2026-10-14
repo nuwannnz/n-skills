@@ -9,10 +9,19 @@ export interface Finding {
   message: string;
 }
 
+export interface TeamMember {
+  id: string;
+  name: string;
+  roles: string[];
+  points: number | null;
+  emails: string[];
+}
+
 export interface Config {
   key: string;
   docsDir: string; // relative to the project root
   ignore: string[];
+  team: TeamMember[];
 }
 
 export interface Project {

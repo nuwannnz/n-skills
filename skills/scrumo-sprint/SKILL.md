@@ -39,8 +39,9 @@ block of AGENTS.md (otherwise ask for the package name), and wait.
 
 Plan:
 
-1. Capacity: the average `completed` of the last 3 closed sprints, adjusted
-   for availability the user reports. For the first sprint, ask the team.
+1. Capacity: start from the team's typical points (`npx scrumo team list`) and
+   compare with the average `completed` of the last 3 closed sprints. Adjust for
+   anyone away, as the user reports. Agree one number with the team.
 2. Agree a sprint goal: one outcome.
 3. Pick `ready` stories from the top of the Backlog table until capacity is
    reached. A story's dependencies must be done or in this or an earlier sprint.
@@ -68,12 +69,15 @@ Close:
    improve (Retro); who will do what next (Actions, each with an owner). Never
    invent them. Validation fails until Review and Retro are filled.
 
-Status: run `npx scrumo status`, summarise it, and name the next action. Write nothing.
+Status: run `npx scrumo status --sprint`, summarise it (progress against the
+calendar, who has what, blockers, the "Needs attention" list), and name the next
+action. Use `--project` for the wider picture. Write nothing.
 
 ## Quality bar
 
 - Never exceed capacity without the user's say-so.
-- Never plan a `draft` story. Never edit generated tables.
+- Bugs are stories: plan them like any other. Never plan a `draft` story. Never
+  edit generated tables.
 - Velocity is points done, not points started.
 
 ## Hand-off

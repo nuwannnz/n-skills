@@ -104,6 +104,12 @@ sprint:
   start_weekday: monday
 agents: [claude, codex, cursor]   # where skills are installed
 skill_prefix: scrumo-                  # /scrumo-prd; must end with a hyphen
+team:                             # the people on the project
+  - id: alex                      # the handle used in a story's assignee
+    name: Alex Rivera
+    roles: [dev]                  # owner | scrum-master | architect | dev | qa
+    points: 5                     # typical points per sprint, or null
+    emails: [alex@acme.io]        # matched against git's user.email
 ignore: []
 ```
 
@@ -158,16 +164,30 @@ generated list), and Risks.
 ```yaml
 id: ACME-4
 title: Sign up with email
+type: story         # story | bug
 epic: ACME-1
-status: draft        # draft | ready | in-progress | in-qa | done | blocked
+status: draft        # draft | ready | in-progress | in-qa | done | blocked | cancelled
 priority: P1         # P0..P3
 points: 3            # 1 2 3 5 8 13
 sprint: null         # integer once planned
 assignee: null
-blocked_reason: null
+depends_on: []
+found_in: null       # for a bug, the story whose behaviour is broken
+reason: null         # why it is blocked or cancelled
 created: 2026-10-09
 updated: 2026-10-09
 ```
+
+A **bug** is a story with `type: bug`. It is planned, estimated, built and
+verified exactly like any story, so no part of the sprint flow needs a special
+case. `scrumo new bug` creates one, and `found_in` links it to the story it was
+found in. Its Technical Notes carry the steps, the actual and expected
+behaviour, and the environment.
+
+A story that is no longer wanted (dropped at refinement, an invalid bug, a
+requirement removed by a change) is `cancelled`, with a `reason`. It leaves its
+sprint, drops off the backlog, and no longer blocks its epic from being done.
+No other story may depend on a cancelled one.
 
 Its sections are:
 
@@ -225,12 +245,14 @@ sprint contains a story that wasn't `ready` when it was planned.
 | `in-progress` | `sprint` is set and that sprint is `active`. `assignee` is set. |
 | `in-qa` | All tasks are checked. Dev Record lists the changed files and tests. |
 | `done` | QA Record has a row for every AC, and every row is `PASS`. |
-| `blocked` | `blocked_reason` is set. |
+| `blocked` | `reason` is set. |
+| `cancelled` | `reason` is set. Not in a sprint. No story depends on it. |
 
 Epics and documents have gates too:
 
 - An epic can't be `ready` unless `prd.md` is approved.
-- An epic can be `done` only when all of its stories are done.
+- An epic can be `done` only when all of its stories that aren't cancelled are
+  done, and at least one is.
 - A document can't be `approved` while it contains placeholders or open
   questions.
 
@@ -249,11 +271,13 @@ field definitions, so there's no need for a JSON Schema library.
 | `scrumo init --key KEY [--name N] [--agents …] [--prefix p-] [--hooks] [--ci]` | Creates `scrumo.yaml`, the `docs/` skeleton, and an AGENTS.md section, then installs the skills. Works for both new and existing repos, and re-running it is safe. |
 | `scrumo install [--agents …] [--prefix p-]` | Copies the skills into the fewest skills directories that cover the chosen agents. |
 | `scrumo update [--force]` | Re-syncs installed skills from the package version, using a manifest so local edits are detected and not overwritten. |
-| `scrumo new prd\|architecture\|standards\|epic\|story …` | Creates an artifact from its schema and allocates the next ID. |
+| `scrumo new prd\|architecture\|standards\|epic\|story\|bug …` | Creates an artifact from its schema and allocates the next ID. |
 | `scrumo schema <type>` | Prints the spec (frontmatter fields, sections, rules) for an agent to read. |
 | `scrumo validate [--fix] [--json] [path]` | Runs every check (section 5). `--fix` applies the deterministic fixes. |
 | `scrumo move <id> <status>` | Changes status with transition and gate checks. |
-| `scrumo status [--json]` | Shows a board summary: the current sprint, counts by status, and what's next. |
+| `scrumo team list\|add\|set\|remove\|whoami` | The roster in `scrumo.yaml`. Once it has a member, a story that isn't done or cancelled can only be assigned to someone on it (`SCRUMO615`). `add --me` adds the git user, `whoami` says which member the git identity belongs to (so `/scrumo-dev` can pick the assignee), and `remove` refuses while the person still has open stories. Typical points add up to a capacity suggestion for sprint planning, and `scrumo status` shows each person's load against theirs. |
+| `scrumo impact <id>` | Shows what a requirement (`FR-001`, `NFR-001`), a decision (`AD-001`), or a ticket touches: the epics and stories involved, their state and sprint, and every document that mentions it. Used by `/scrumo-change` and `/scrumo-bug`. |
+| `scrumo status [--sprint\|--project] [--json]` | The sprint and the project at a glance. Sprint: progress bar against committed points, working days used against the calendar with a verdict (ahead, on track, behind, at risk, overdue), who holds what, and blockers. Project: epic progress, requirement coverage, velocity, how many sprints of ready work there are, and open bugs by priority. Both: a validation health headline, a "Needs attention" list (a sprint behind, a failed QA round, a blocked story, a P0 or P1 bug outside the sprint, uncovered requirements), and what to do next. |
 | `scrumo sprint plan\|start\|close` | The mechanical parts of a sprint: adds the sprint and its section, commits stories, activates it and starts its epics, then records velocity, carries unfinished stories back to the backlog, and closes finished epics. The agent supplies the goal, capacity, stories, Review, and Retro. |
 
 The installer's agent-to-directory map is data in `spec/agents.yaml`, so adding
@@ -310,7 +334,9 @@ post-edit hook.
 
 ## 6. Skills
 
-There are 10 skills. Each one is a folder: `skills/<name>/SKILL.md`, plus an
+There are 13 skills: the 10 that run the main flow, then three that handle what
+happens around it (bugs, backlog grooming, and changes to approved scope). Each
+one is a folder: `skills/<name>/SKILL.md`, plus an
 optional `checklist.md`.
 
 | Skill | Expert persona | Reads | Writes | Key behaviors |
@@ -325,6 +351,9 @@ optional `checklist.md`.
 | `/scrumo-dev` | Senior developer | story, architecture, standards | Code, story Dev Record | Picks or receives a story, moves it to in-progress, works through the tasks test-first, self-reviews against the Definition of Done, then moves it to in-qa. |
 | `/scrumo-qa` | QA engineer | story, standards | Story Test Plan and QA Record, tests | Writes the test plan (ideally at ready), verifies every AC with evidence, and either passes the story (done) or fails it back to in-progress with defects noted. |
 | `/scrumo-validate` | Release gatekeeper | Everything under `docs/` | Fixes | Runs `scrumo validate --fix --json` and fixes what remains until it is clean (a maximum of N rounds, then it reports). |
+| `/scrumo-bug` | QA engineer | User report, the story it was found in | A story with `type: bug` | Makes the bug reproducible (steps, expected, actual, environment), checks for duplicates, sets priority by impact, links it to the story it was found in, and writes ACs and tasks. A defect in the story under test is a QA FAIL instead. |
+| `/scrumo-refine` | Agile coach / PO | Backlog, stories, bugs | Stories, split-off stories | Triages new items, tightens ACs, estimates, splits anything at 13 points, fixes dependencies and order, cancels what is no longer wanted, and moves stories to `ready`. Never touches stories already in progress. |
+| `/scrumo-change` | Business analyst and architect | Change request, PRD, architecture | PRD, architecture, epics, stories | Runs `scrumo impact` on the affected IDs, sorts the stories by state, gets the owner's decision, then applies the change everywhere: version bump and Changelog, epic coverage, edited or cancelled stories, in-flight stories blocked then updated, follow-up stories for finished work. |
 
 Every `SKILL.md` uses the same section skeleton, which the repo's own CI
 lints:
@@ -421,7 +450,7 @@ scrumo/
 │   ├── rules.yaml          # every rule code, severity, and whether --fix handles it
 │   ├── agents.yaml         # agent → skills dir map
 │   └── markdownlint.json   # shipped lint config
-├── skills/                 # the 10 skills (source of truth)
+├── skills/                 # the 13 skills (source of truth)
 ├── templates/              # AGENTS.md snippet, pre-commit, CI workflow
 ├── test/
 │   ├── unit/               # node:test, run against the .ts sources
@@ -444,7 +473,9 @@ scrumo/
 
 Status: phases 0 and 1 are done. The phase 2 and 3 skills (all 10) and the
 `scrumo move`, `scrumo status`, `scrumo sprint`, and `scrumo new tracker` commands are
-built and linted. A fresh agent dry-ran the whole flow on a toy project (idea
+built and linted. The three skills around the loop (`/scrumo-bug`,
+`/scrumo-refine`, `/scrumo-change`), the `bug` ticket type, the `cancelled`
+status, and `scrumo impact` are built too, but haven't been dry-run yet. A fresh agent dry-ran the whole flow on a toy project (idea
 to a closed sprint with a failed-then-passed QA round and a carry-over) using
 only the `SKILL.md` files, and the friction it found was fixed.
 
@@ -457,15 +488,6 @@ Left to the owner: creating the `scrumo-starter` template repo (run
 The "done when" runs that remain: the idea-to-ready-stories flow in at least 2
 different agents (now one `npx scrumo init` away), and a full sprint on the sample
 project.
-
-### Planned additions
-
-Skills to add after the first 10 have been dogfooded:
-
-| Skill | Why |
-| --- | --- |
-| `/scrumo-change` | Change requests to an approved PRD or architecture. Today `/scrumo-prd` and `/scrumo-architecture` have a change mode. A dedicated skill would also work out the ripple through epics and stories, and re-open the affected ones. |
-| `/scrumo-refine` | Backlog grooming: estimating, splitting 13-point stories, adding dependencies, and moving stories to `ready`. Today this is split between `/scrumo-stories` and `/scrumo-sprint plan`. |
 
 ## 10. Decisions
 
@@ -482,7 +504,8 @@ Confirmed:
 3. **Sprint tracker: one `sprint-tracker.md`** that lists every sprint with
    its stories and their status, plus the backlog, and supports sprint
    planning. See section 3.
-4. **Story statuses:** `draft, ready, in-progress, in-qa, done, blocked`.
+4. **Story statuses:** `draft, ready, in-progress, in-qa, done, blocked,
+   cancelled`. A bug is a story with `type: bug`, not a separate kind.
 5. **Managed root: `docs/`**, configurable in `scrumo.yaml`.
 6. **First agents to support:** Claude Code, Codex, and Cursor, then Gemini
    CLI and Copilot.

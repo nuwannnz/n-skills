@@ -53,7 +53,8 @@ block of AGENTS.md (otherwise ask for the package name), and wait.
 
 Change mode: edit in place, bump `version`, add a Changelog row, and record a
 new AD that supersedes the old one (set the old one's Status to
-`superseded by AD-nnn`). Tell the user which stories the change touches.
+`superseded by AD-nnn`). Run `npx scrumo impact <AD ID>` to see which stories the change touches, and use
+`/scrumo-change` when planned or built work is affected.
 
 ## Quality bar
 

@@ -55,9 +55,9 @@ Change mode (the PRD is approved):
    Edit in place.
 2. Bump `version` (minor for additions, major for removed or reworded
    requirements), add a Changelog row at the top, and update `updated`.
-3. List the epics and stories affected by each changed or removed requirement,
-   and tell the user. Don't edit them yourself: they go through `/scrumo-epics` and
-   `/scrumo-stories`.
+3. For a change that touches work already planned or built, use `/scrumo-change`:
+   it runs `npx scrumo impact`, gets the owner's decision, and updates the epics
+   and stories. Don't edit those yourself here.
 
 ## Quality bar
 

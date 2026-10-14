@@ -1,6 +1,7 @@
 ---
 id: PAW-10
 title: Get a reminder before an appointment
+type: story
 epic: PAW-2
 status: draft
 priority: P2
@@ -8,7 +9,8 @@ points: null
 sprint: null
 assignee: null
 depends_on: [PAW-8]
-blocked_reason: null
+found_in: null
+reason: null
 created: 2026-09-15
 updated: 2026-09-15
 ---

@@ -14,6 +14,7 @@ export interface NewOptions {
   priority: string | undefined;
   requirements: string | undefined;
   dependsOn: string | undefined;
+  foundIn?: string | undefined;
   today?: string;
 }
 
@@ -68,8 +69,9 @@ export function render(schema: Schema, values: Record<string, unknown>, renderBl
 
 export function newCommand(kindArg: string | undefined, cwd: string, options: NewOptions): { code: number; out: string } {
   const today = options.today ?? new Date().toISOString().slice(0, 10);
-  const kind = kindArg === undefined ? undefined : resolveKind(kindArg);
-  if (!kind || !NEW_KINDS.includes(kind)) return { code: 2, out: `Usage: scrumo new <${[...NEW_KINDS.slice(0, 4), 'tracker', 'epic', 'story'].join('|')}> [title] [options]\n` };
+  const bug = kindArg === 'bug'; // a bug is a story with type: bug
+  const kind = bug ? 'story' : kindArg === undefined ? undefined : resolveKind(kindArg);
+  if (!kind || !NEW_KINDS.includes(kind)) return { code: 2, out: `Usage: scrumo new <${[...NEW_KINDS.slice(0, 4), 'tracker', 'epic', 'story', 'bug'].join('|')}> [title] [options]\n` };
   const root = findRoot(cwd);
   if (!root) return { code: 1, out: 'No scrumo.yaml found in or above this folder.\n' };
   const problems: string[] = [];
@@ -79,7 +81,7 @@ export function newCommand(kindArg: string | undefined, cwd: string, options: Ne
   const isTicket = kind === 'epic' || kind === 'story';
   const fixedTitle = schema.frontmatter.find((f) => f.name === 'title')?.fixed;
   const title = typeof fixedTitle === 'string' ? fixedTitle : options.title?.trim() || (isTicket ? undefined : schema.title);
-  if (!title) return { code: 2, out: `scrumo new ${kind} needs a title, for example: scrumo new ${kind} "Sign up with email"\n` };
+  if (!title) return { code: 2, out: `scrumo new ${bug ? 'bug' : kind} needs a title, for example: scrumo new ${bug ? 'bug' : kind} "Sign up with email"\n` };
 
   const values: Record<string, unknown> = Object.fromEntries(schema.frontmatter.map((f) => [f.name, defaultValue(f, today)]));
   values.title = title;
@@ -98,8 +100,14 @@ export function newCommand(kindArg: string | undefined, cwd: string, options: Ne
     values.priority = options.priority ?? 'P2';
     if (!['P0', 'P1', 'P2', 'P3'].includes(String(values.priority))) return { code: 2, out: 'priority must be P0, P1, P2, or P3.\n' };
     if (kind === 'story') {
-      const epic = options.epic;
-      if (!epic) return { code: 2, out: 'scrumo new story needs --epic <epic ID>.\n' };
+      if (options.foundIn && !bug) return { code: 2, out: '--found-in only applies to bugs: use scrumo new bug.\n' };
+      if (options.foundIn && project.tickets.get(options.foundIn)?.kind !== 'story') return { code: 1, out: `${options.foundIn} is not an existing story.\n` };
+      const epic = options.epic ?? (options.foundIn ? String(project.tickets.get(options.foundIn)!.fm?.epic) : undefined);
+      if (!epic) return { code: 2, out: `scrumo new ${bug ? 'bug' : 'story'} needs --epic <epic ID>${bug ? ' or --found-in <story ID>' : ''}.\n` };
+      if (bug) {
+        values.type = 'bug';
+        values.found_in = options.foundIn ?? null;
+      }
       if (project.tickets.get(epic)?.kind !== 'epic') return { code: 1, out: `${epic} is not an existing epic.\n` };
       values.epic = epic;
       const depends = options.dependsOn?.split(',').map((id) => id.trim()).filter(Boolean) ?? [];

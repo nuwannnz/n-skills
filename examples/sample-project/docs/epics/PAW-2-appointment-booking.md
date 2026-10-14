@@ -5,7 +5,7 @@ status: in-progress
 priority: P0
 requirements: [FR-003, FR-004, FR-005, FR-006]
 created: 2026-09-12
-updated: 2026-09-28
+updated: 2026-10-06
 ---
 
 # Appointment booking
@@ -46,6 +46,7 @@ get reminded the day before, without phoning the clinic.
 | PAW-8 | Book an appointment | ready | 3 | 2 |
 | PAW-9 | Cancel an appointment | blocked | 2 | - |
 | PAW-10 | Get a reminder before an appointment | draft | - | - |
+| PAW-11 | Print a booking confirmation | cancelled | - | - |
 
 <!-- scrumo:end -->
 

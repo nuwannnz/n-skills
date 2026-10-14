@@ -47,9 +47,9 @@ function checkEpic(project: Project, doc: Doc, report: Report): void {
     report('SCRUMO601', doc.file, `epic is ${status} but prd.md ${project.prd ? 'is not approved' : 'does not exist'}`);
   }
   if (status === 'done') {
-    const mine = stories(project).filter((s) => s.epic === doc.fm!.id);
+    const mine = stories(project).filter((s) => s.epic === doc.fm!.id && s.status !== 'cancelled');
     const open = mine.filter((s) => s.status !== 'done');
-    if (mine.length === 0) report('SCRUMO608', doc.file, 'epic is done but has no stories');
+    if (mine.length === 0) report('SCRUMO608', doc.file, 'epic is done but has no stories that are done');
     else if (open.length) report('SCRUMO608', doc.file, `epic is done but ${open.map((s) => s.id).join(', ')} ${open.length === 1 ? 'is' : 'are'} not`);
   }
 }
@@ -60,10 +60,19 @@ function checkStory(project: Project, doc: Doc, sprints: Sprints, report: Report
   if (typeof status !== 'string') return;
   const fail = (code: string, message: string) => report(code, doc.file, message);
 
-  const reason = fm.blocked_reason;
-  if (status === 'blocked' && !(typeof reason === 'string' && reason.trim() !== '')) fail('SCRUMO607', 'story is blocked but blocked_reason is not set');
-  if (status !== 'blocked' && reason !== null && reason !== undefined) fail('SCRUMO607', `blocked_reason is set but status is ${status}`);
+  const reason = fm.reason;
+  const needsReason = status === 'blocked' || status === 'cancelled';
+  if (needsReason && !(typeof reason === 'string' && reason.trim() !== '')) fail('SCRUMO607', `story is ${status} but reason is not set`);
+  if (!needsReason && reason !== null && reason !== undefined) fail('SCRUMO607', `reason is set but status is ${status}`);
+  if (status === 'cancelled' && typeof fm.sprint === 'number') fail('SCRUMO613', `story is cancelled but still in sprint ${fm.sprint}`);
+  for (const dep of Array.isArray(fm.depends_on) ? fm.depends_on : []) {
+    if (typeof dep === 'string' && project.tickets.get(dep)?.fm?.status === 'cancelled') fail('SCRUMO614', `story depends on ${dep}, which is cancelled`);
+  }
 
+  const team = project.config.team.map((m) => m.id);
+  if (team.length > 0 && typeof fm.assignee === 'string' && status !== 'done' && status !== 'cancelled' && !team.includes(fm.assignee)) {
+    fail('SCRUMO615', `assignee "${fm.assignee}" isn't on the team (${team.join(', ')}); add them with scrumo team add`);
+  }
   const number = typeof fm.sprint === 'number' ? fm.sprint : undefined;
   if (number !== undefined) {
     const sprint = sprints.get(number);

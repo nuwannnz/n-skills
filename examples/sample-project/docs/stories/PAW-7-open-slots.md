@@ -1,6 +1,7 @@
 ---
 id: PAW-7
 title: See open appointment slots
+type: story
 epic: PAW-2
 status: in-progress
 priority: P0
@@ -8,7 +9,8 @@ points: 5
 sprint: 2
 assignee: alex
 depends_on: []
-blocked_reason: null
+found_in: null
+reason: null
 created: 2026-09-15
 updated: 2026-10-06
 ---

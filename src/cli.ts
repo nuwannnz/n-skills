@@ -1,12 +1,14 @@
 #!/usr/bin/env node
 import { readFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
+import { impactCommand } from './cli/impact.ts';
 import { initCommand, installCommand } from './cli/install.ts';
 import { moveCommand } from './cli/move.ts';
 import { newCommand } from './cli/new.ts';
 import { sprintCommand } from './cli/sprint.ts';
 import { schemaCommand } from './cli/schema.ts';
 import { statusCommand } from './cli/status.ts';
+import { teamCommand } from './cli/team.ts';
 import { validateCommand } from './cli/validate.ts';
 
 const HELP = `scrumo: agile engineering teams working from strictly structured specs.
@@ -17,10 +19,12 @@ Usage:
   scrumo update                                     Re-sync the skills, keeping local edits
   scrumo validate [--fix] [--json] [path]   Check docs/ against the spec
   scrumo schema <type> [--json]             Print the spec for a document type (or "rules")
-  scrumo new <type> [title] [options]       Create a document (brief, prd, architecture, standards, tracker, epic, story)
+  scrumo new <type> [title] [options]       Create a document (brief, prd, architecture, standards, tracker, epic, story, bug)
   scrumo move <id|document> <status>        Change a status, checking the transition and its gates
   scrumo sprint plan|start|close            Plan a sprint, start it, or close it
-  scrumo status [--json]                    Show the board and what to do next
+  scrumo team list|add|set|remove|whoami      The people on the project, kept in scrumo.yaml
+  scrumo impact <id>                        What a requirement, decision, or ticket touches
+  scrumo status [--sprint|--project] [--json]   The sprint and project at a glance, what needs attention
 
 init/install/update options:
   --agents <a,b>           claude, codex, cursor, gemini, copilot (default: scrumo.yaml, or what the repo already uses)
@@ -34,9 +38,12 @@ new options:
   --priority <P0..P3>      epic and story priority (default P2)
   --requirements <FR-001,...>   epic: PRD requirements it delivers
   --depends-on <ID,...>    story: stories that must be done first
+  --found-in <ID>          bug: the story whose behaviour is broken
 
 sprint options (plan): --goal TEXT --capacity N --stories ID,ID [--start DATE] [--end DATE]
   sprint start <number> and sprint close <number> take the sprint number.
+
+team options: --name "Full Name" --roles dev,qa --points 5 --emails a@b.c --me (add the git user) --force
 
 move options:
   --assignee <name>        story: who is building it (needed for in-progress)
@@ -58,6 +65,7 @@ function main(argv: string[]): number {
       'depends-on': { type: 'string' },
       assignee: { type: 'string' },
       reason: { type: 'string' },
+      'found-in': { type: 'string' },
       agents: { type: 'string' },
       prefix: { type: 'string' },
       key: { type: 'string' },
@@ -65,6 +73,12 @@ function main(argv: string[]): number {
       hooks: { type: 'boolean' },
       ci: { type: 'boolean' },
       force: { type: 'boolean' },
+      sprint: { type: 'boolean' },
+      roles: { type: 'string' },
+      points: { type: 'string' },
+      emails: { type: 'string' },
+      me: { type: 'boolean' },
+      project: { type: 'boolean' },
       goal: { type: 'string' },
       capacity: { type: 'string' },
       start: { type: 'string' },
@@ -97,6 +111,7 @@ function main(argv: string[]): number {
         priority: values.priority,
         requirements: values.requirements,
         dependsOn: values['depends-on'],
+        foundIn: values['found-in'],
       });
       break;
     case 'init':
@@ -112,8 +127,14 @@ function main(argv: string[]): number {
     case 'sprint':
       result = sprintCommand(rest[0], rest[1], process.cwd(), { goal: values.goal, capacity: values.capacity, start: values.start, end: values.end, stories: values.stories });
       break;
+    case 'team':
+      result = teamCommand(rest[0], rest[1], process.cwd(), { name: values.name, roles: values.roles, points: values.points, emails: values.emails, me: values.me === true, force: values.force === true, json: values.json === true });
+      break;
+    case 'impact':
+      result = impactCommand(rest[0], process.cwd(), values.json === true);
+      break;
     case 'status':
-      result = statusCommand(process.cwd(), values.json === true);
+      result = statusCommand(process.cwd(), values.json === true, values.sprint === true ? 'sprint' : values.project === true ? 'project' : 'all');
       break;
     default:
       result = { code: 2, out: `Unknown command "${command}".\n\n${HELP}` };

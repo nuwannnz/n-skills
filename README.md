@@ -19,6 +19,8 @@ npx scrumo init --key ACME --agents claude,codex,cursor
 npm install --save-dev scrumo
 ```
 
+Then add your team: `npx scrumo team add --me`, and one `npx scrumo team add <id> --name "Full Name" --roles dev,qa --points 5` per teammate.
+
 `init` writes `scrumo.yaml`, creates `docs/`, installs the skills into the fewest
 folders your agents read, and adds the workflow rules to `AGENTS.md` (and
 `CLAUDE.md` for Claude Code). It is safe to run again. Then tell your agent
@@ -34,8 +36,11 @@ pre-commit check), `--ci` (a GitHub Actions check), `--force`.
           → /scrumo-sprint plan → /scrumo-sprint start → (/scrumo-dev ⇄ /scrumo-qa)* → /scrumo-sprint close
 ```
 
-`/scrumo-validate` checks any step. `npx scrumo status` shows where you are and
-what to run next.
+Around the loop: `/scrumo-bug` reports a bug, `/scrumo-refine` grooms the backlog,
+`/scrumo-change` handles a change to approved scope, and `/scrumo-validate`
+checks any step. `npx scrumo status` shows where you are at a glance and
+what to run next: sprint progress against the calendar, who has what, epic progress,
+velocity, open bugs, and a "Needs attention" list.
 
 ## The CLI
 
@@ -47,7 +52,9 @@ what to run next.
 | `scrumo new <type> [title]` | Create a document or ticket from its schema. |
 | `scrumo move <id> <status>` | Change a status, checking the transition and its gates. |
 | `scrumo sprint plan\|start\|close` | The file edits for running a sprint. |
-| `scrumo status [--json]` | Show the board and what to do next. |
+| `scrumo team list\|add\|set\|remove\|whoami` | Who is on the project: handles, roles, typical points per sprint. Stories are assigned only to them. |
+| `scrumo impact <id>` | Show what a requirement, decision, or ticket touches. |
+| `scrumo status [--sprint\|--project] [--json]` | The sprint and project at a glance, what needs attention, and what to do next. |
 
 ## Working on this repository
 
@@ -58,3 +65,9 @@ npm run check   # typecheck, markdownlint, tests
 
 `PLAN.md` is the design and the phase plan, and `spec/` is the contract the
 validator, the CLI, and the skills all read. See `CLAUDE.md` for the layout.
+
+## License
+
+Open source under the [MIT license](LICENSE). Issues and pull requests are
+welcome: run `npm run check` before sending one, and see `CLAUDE.md` for how the
+repository is laid out.

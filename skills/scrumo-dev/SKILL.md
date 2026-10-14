@@ -37,8 +37,10 @@ block of AGENTS.md (otherwise ask for the package name), and wait.
 
 1. Pick the story: the one named, or the highest-priority `ready` or
    `in-progress` story in the active sprint (`npx scrumo status`).
-2. If it is `ready`, ask who is building it, then run
-   `npx scrumo move <ID> in-progress --assignee "<name>"`. That needs an active sprint.
+2. If it is `ready`, work out who is building it: run `npx scrumo team whoami` (it
+   matches the git identity to the team) and ask if that fails. Then run
+   `npx scrumo move <ID> in-progress --assignee "<id>"`. That needs an active sprint
+   and an assignee who is on the team.
 3. Read the story, the standards, and the architecture parts it cites. If the
    Test Plan is empty, run `/scrumo-qa` (plan) first. Create the branch the Git
    Workflow section describes from the current HEAD. If the repository has no
@@ -69,6 +71,8 @@ block of AGENTS.md (otherwise ask for the package name), and wait.
 ## Quality bar
 
 - Tests first, and each one traceable to an AC.
+- For a bug (`type: bug`), reproduce it with a failing test before you change any
+  code, and keep that test as the regression test.
 - Stay inside the story. Note out-of-scope problems in Notes, don't fix them.
 - Don't touch Test Plan or QA Record: they belong to `/scrumo-qa`.
 - Commit or push only if the user asks. Branches stay uncommitted until then.

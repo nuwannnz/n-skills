@@ -1,6 +1,7 @@
 ---
 id: PAW-9
 title: Cancel an appointment
+type: story
 epic: PAW-2
 status: blocked
 priority: P1
@@ -8,7 +9,8 @@ points: 2
 sprint: null
 assignee: null
 depends_on: [PAW-8]
-blocked_reason: The clinic hasn't decided whether late cancellations are charged, which changes AC-2.
+found_in: null
+reason: The clinic hasn't decided whether late cancellations are charged, which changes AC-2.
 created: 2026-09-15
 updated: 2026-09-30
 ---

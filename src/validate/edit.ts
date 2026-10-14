@@ -23,7 +23,7 @@ export function setYamlKey(text: string, key: string, value: string): string {
   const start = lines.findIndex((line) => line.startsWith(`${key}:`));
   if (start < 0) throw new Error(`scrumo.yaml has no ${key}`);
   const next = lines.findIndex((line, i) => i > start && /^[A-Za-z_][\w-]*:/.test(line));
-  lines.splice(start, (next === -1 ? lines.length : next) - start, `${key}: ${value}`);
+  lines.splice(start, (next === -1 ? lines.length : next) - start, value.startsWith('\n') ? `${key}:${value}` : `${key}: ${value}`);
   return lines.join('\n');
 }
 

@@ -77,9 +77,27 @@ limits.
 
 ## The subscription question
 
-Anthropic's Agent SDK docs say third-party developers may not offer claude.ai
-login or rate limits in their products "unless previously approved". Running
-the user's own Claude Code with their own login, as this app does, falls under
-that sentence. It works today and the app never handles credentials, but get
-Anthropic's approval before releasing it publicly. API-key, Bedrock and Vertex
-logins are fine without approval.
+Checked 2026-10-15 against Claude Code's
+[Legal and compliance](https://code.claude.com/docs/en/legal-and-compliance) page.
+A product may run Claude Code for its users if it accepts Anthropic's
+Commercial Terms and:
+
+- runs the Claude Code binary unmodified, without removing any of its sign-in methods;
+- lets each user sign in through Anthropic's own flow, with their own
+  subscription, API key or cloud provider, billed to them;
+- never pays for, resells or intermediates their usage.
+
+The page says this "does not prevent an end user from signing in to the
+unmodified Claude Code binary with their own Claude subscription". This app
+follows those rules: it runs the user's installed `claude`, and sign-in happens
+in Claude Code (`/login`).
+
+What stays off-limits:
+
+- our own "Sign in with Claude" flow;
+- reading or storing Claude credentials or session tokens;
+- routing requests through users' plan credentials on their behalf, for example
+  a server proxying their subscriptions.
+
+The [Help Center](https://support.claude.com/en/articles/15036540-use-the-claude-agent-sdk-with-your-claude-plan)
+confirms third-party apps draw from the user's subscription limits.

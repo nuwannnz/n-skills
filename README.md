@@ -10,12 +10,47 @@ It answers one question: can an app drive the user's local Claude Code on their
 own subscription, against a scrumo project, with the app in control of what
 the agent may change? Git, pull requests, and packaging are out of scope.
 
-## Run it
+## Install (as a user)
+
+```sh
+npm install -g scrumo-desktop      # not published yet: npm install -g ./scrumo-desktop-0.1.0.tgz
+```
+
+The install downloads Electron (about 130 MB) and adds an app launcher, so
+after that nobody needs the terminal:
+
+| OS | Launcher | Open it from |
+| --- | --- | --- |
+| macOS | `~/Applications/Scrumo.app` | Launchpad, Spotlight, Finder; keep it in the Dock |
+| Windows | `Scrumo` Start menu shortcut | Start menu; pin to the taskbar (**untested**) |
+| Linux | `~/.local/share/applications/scrumo.desktop` | the app menu (**untested**) |
+
+No Apple Developer account or Windows certificate is involved. Gatekeeper and
+SmartScreen only check files that a browser downloaded and marked as coming
+from the internet. npm doesn't mark them, and the macOS launcher is built on
+the user's own machine: a clone of npm's Electron.app, renamed, given our
+icon, pointed at the installed package, and ad-hoc signed. Cloning on APFS
+means it takes almost no extra disk space.
+
+- `scrumo-desktop [folder]` opens the app from a terminal.
+- `--install-launcher` re-adds the launcher, for example after
+  `npm install --ignore-scripts`. The app also re-adds a missing launcher when
+  it starts.
+- `--uninstall-launcher` removes the launcher before `npm uninstall -g
+  scrumo-desktop`, because npm no longer runs uninstall scripts. If you forget,
+  the launcher says the app was removed and suggests moving it to the Trash.
+
+The launcher points at the Node version that installed it, so with nvm it
+keeps working only while that Node version is still installed. Behind a proxy
+that blocks GitHub downloads, set `ELECTRON_MIRROR`.
+
+## Run it (development)
 
 ```sh
 npm install
 npm run demo:setup    # copies n-skills' sample project to .demo/pawplan with the CLI and skills
 npm start             # opens the app on .demo/pawplan
+npm run icons         # rebuilds build/icon.{png,icns,ico} from build/icon.svg (macOS)
 ```
 
 Needs Node 22 and Claude Code installed and signed in (`claude`, then `/login`).

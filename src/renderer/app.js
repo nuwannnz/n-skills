@@ -256,6 +256,7 @@ api.on('chat:message', onMessage);
 api.on('chat:ask', onAsk);
 api.on('chat:ask-cancel', id => { const n = state.asks.get(id); if (n) { n.classList.add('done'); n.querySelector('.row').innerHTML = '<span class="muted small">Cancelled</span>'; } });
 api.on('docs:changed', () => loadDocs());
+api.on('project:switched', p => { state.tools.clear(); setBusy(false); applyProject(p); });
 
 const init = await api.init();
 const badge = $('#engineBadge');

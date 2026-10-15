@@ -1,11 +1,17 @@
-import { app, BrowserWindow, dialog, ipcMain } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, nativeImage, shell } from 'electron';
 import { execFile } from 'node:child_process';
-import { existsSync, readdirSync, readFileSync, statSync, watch, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, watch, writeFileSync } from 'node:fs';
 import { basename, dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ChatSession, claudeVersion, engineEnv, findClaude, loginShellPath } from './engine.js';
+import { APP_ID, APP_NAME, electronBinary, installLauncher, isGlobalInstall, launcherExists, launcherPath, pkgDir } from './launcher.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
+const icon = join(here, '../build/icon.png');
+
+app.setName(APP_NAME);
+if (process.platform === 'win32') app.setAppUserModelId(APP_ID);
+if (!app.requestSingleInstanceLock()) app.exit(0); // the running instance gets 'second-instance'
 let win = null;
 let root = null;
 let watcher = null;
@@ -27,8 +33,36 @@ function projectInfo() {
   return { root, name, key, skills, hasCli: existsSync(join(root, 'node_modules/.bin/scrumo')) };
 }
 
+/** A project folder named on the command line (scrumo-desktop <folder>, or a second launch). */
+const projectArg = argv => argv.slice(1).map(a => resolve(a)).reverse().find(a => a !== pkgDir && isProject(a)) ?? null;
+
+const recentsFile = () => join(app.getPath('userData'), 'recent-projects.json');
+function recentProjects() {
+  try { return JSON.parse(readFileSync(recentsFile(), 'utf8')).filter(isProject); } catch { return []; }
+}
+function rememberProject(p) {
+  try {
+    mkdirSync(app.getPath('userData'), { recursive: true });
+    writeFileSync(recentsFile(), JSON.stringify([p, ...recentProjects().filter(r => r !== p)].slice(0, 10), null, 2));
+  } catch { /* not worth failing over */ }
+}
+
+/** Puts the launcher back if a global install lost it (for example npm ran with --ignore-scripts). */
+function ensureLauncher() {
+  if (!isGlobalInstall() || process.env.SCRUMO_DESKTOP_NO_LAUNCHER) return;
+  try {
+    if (!launcherExists()) installLauncher();
+    if (process.platform === 'win32') {
+      shell.writeShortcutLink(launcherPath(), 'update', { target: electronBinary(), args: `"${pkgDir}"`, appUserModelId: APP_ID, icon: join(here, '../build/icon.ico'), iconIndex: 0 });
+    }
+  } catch (err) {
+    console.warn(`Could not add the app launcher: ${err.message}`);
+  }
+}
+
 function openProject(p) {
   root = resolve(p);
+  rememberProject(root);
   session?.close();
   session = null;
   watcher?.close();
@@ -122,15 +156,19 @@ app.whenReady().then(() => {
   engine.env = engineEnv(engine.path);
   engine.version = engine.claudePath ? claudeVersion(engine.claudePath, engine.env) : null;
 
-  const start = process.env.SCRUMO_PROJECT ?? join(here, '../.demo/pawplan');
+  const start = projectArg(process.argv) ?? process.env.SCRUMO_PROJECT ?? recentProjects()[0] ?? join(here, '../.demo/pawplan');
   if (isProject(start)) openProject(start);
+
+  if (process.platform === 'darwin' && !process.execPath.includes(`/${APP_NAME}.app/`)) app.dock?.setIcon(nativeImage.createFromPath(icon));
+  ensureLauncher();
 
   win = new BrowserWindow({
     width: 1400,
     height: 880,
     minWidth: 900,
     minHeight: 560,
-    title: 'scrumo',
+    title: APP_NAME,
+    icon,
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
     backgroundColor: '#f2f5f5',
     webPreferences: { preload: join(here, 'preload.cjs'), contextIsolation: true, sandbox: true, nodeIntegration: false },
@@ -158,6 +196,13 @@ app.whenReady().then(() => {
       }, 1000);
     }, Number(process.env.SCRUMO_CLIENT_SNAPSHOT_DELAY ?? 3000)));
   }
+});
+
+// A second launch (the launcher again, or `scrumo-desktop <folder>`) focuses this window and opens its project.
+app.on('second-instance', (_e, argv) => {
+  const p = projectArg(argv);
+  if (p && p !== root) send('project:switched', openProject(p));
+  if (win) { if (win.isMinimized()) win.restore(); win.focus(); }
 });
 
 app.on('window-all-closed', () => {

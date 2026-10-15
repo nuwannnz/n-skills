@@ -1,6 +1,6 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
-const EVENTS = ['chat:message', 'chat:ask', 'chat:ask-cancel', 'docs:changed'];
+const EVENTS = ['chat:message', 'chat:ask', 'chat:ask-cancel', 'docs:changed', 'project:switched'];
 
 contextBridge.exposeInMainWorld('api', {
   init: () => ipcRenderer.invoke('app:init'),

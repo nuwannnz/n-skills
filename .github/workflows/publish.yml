@@ -13,6 +13,8 @@ permissions:
 
 jobs:
   publish:
+    # Releases tagged desktop-v* belong to publish-desktop.yml.
+    if: ${{ !startsWith(github.event.release.tag_name, 'desktop-v') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

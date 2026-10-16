@@ -26,6 +26,10 @@ check:desktop`, `npm run desktop` (start the app on a demo project; run `npm run
 demo:setup -w desktop` first). Setting `ELECTRON_SKIP_BINARY_DOWNLOAD=1` skips the
 130 MB Electron download when you only work on the CLI.
 
+Releases: the CLI is published by a GitHub release tagged `vX.Y.Z`; the desktop app by
+a release tagged `desktop-vX.Y.Z` (the tag must match `desktop/package.json`). Each tag
+runs its own workflow, so the two never publish together.
+
 ## Set up a project
 
 In the repository you want to manage:

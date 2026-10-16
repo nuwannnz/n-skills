@@ -35,5 +35,12 @@
     "type": "git",
     "url": "git+https://github.com/nuwannnz/n-skills.git",
     "directory": "desktop"
-  }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "bugs": {
+    "url": "https://github.com/nuwannnz/n-skills/issues"
+  },
+  "homepage": "https://github.com/nuwannnz/n-skills/tree/main/desktop#readme"
 }

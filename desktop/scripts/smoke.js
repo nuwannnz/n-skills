@@ -1,7 +1,7 @@
 // Headless check of the engine, without Electron: runs one request through the
 // local Claude Code and prints which login it used. Read-only by default.
 //   node scripts/smoke.js [project]
-//   SMOKE_PROMPT="/scrumo-change ..." SMOKE_APPROVE_DOC_EDITS=1 node scripts/smoke.js
+//   SMOKE_PROMPT="/scrumo-change ..." SMOKE_PERMISSIONS=edits node scripts/smoke.js   (ask, edits or auto)
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ChatSession, claudeVersion, engineEnv, findClaude, loginShellPath } from '../src/engine.js';
@@ -17,7 +17,7 @@ console.log(`claude: ${claudePath} (${claudeVersion(claudePath, env)})\nproject:
 const started = Date.now();
 const session = new ChatSession({
   root, claudePath, env,
-  autoApproveDocEdits: process.env.SMOKE_APPROVE_DOC_EDITS === '1',
+  permissions: process.env.SMOKE_PERMISSIONS ?? 'ask',
   askPerson: async ({ toolName, input }) => {
     console.log(`  [would ask the person] ${toolName} ${JSON.stringify(input).slice(0, 120)} -> denied by smoke test`);
     return { allow: false, message: 'The person declined this step.' };

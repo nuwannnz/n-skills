@@ -5,6 +5,7 @@ import { prettyModel } from '../../lib/format';
 import { skillGroups } from '../../lib/skills';
 import type { Context, Model } from '../../lib/types';
 import { Button, Grow, Icon, toast } from '../../ui';
+import { PermissionSelect } from '../settings/PermissionSelect';
 import { setModel } from '../usage/actions';
 import { send, stop } from './actions';
 
@@ -36,6 +37,7 @@ export function Composer({ p, chat, hidden }: { p: ProjectView; chat: ChatState;
           onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(root); } }} />
         <div className="composer-bar">
           <ModelPicker />
+          <label className="modelpick" title="How much the agent may do without asking. Applies to every project, from its next step."><span className="muted small">Permissions</span><PermissionSelect id="permPick" /></label>
           <ContextRing context={chat.context} />
           <span className="muted small" id="chatState">{chat.busy ? 'Esc to stop' : ''}</span>
           <Grow />
@@ -48,7 +50,8 @@ export function Composer({ p, chat, hidden }: { p: ProjectView; chat: ChatState;
   );
 }
 
-const FALLBACK_MODELS: Model[] = [{ value: 'sonnet', name: 'Sonnet' }, { value: 'opus', name: 'Opus' }, { value: 'haiku', name: 'Haiku' }];
+// Until Claude Code has said which models it offers (the app asks at start and keeps the answer).
+const FALLBACK_MODELS: Model[] = [{ value: 'opus', name: 'Opus' }, { value: 'sonnet', name: 'Sonnet' }, { value: 'haiku', name: 'Haiku' }];
 
 export const modelLabel = (pref: string, models: Model[] | null) => (pref ? (models?.find(m => m.value === pref)?.name ?? prettyModel(pref)) : '');
 
@@ -56,7 +59,12 @@ export const modelLabel = (pref: string, models: Model[] | null) => (pref ? (mod
 function ModelPicker() {
   const pref = useApp(s => s.modelPref);
   const models = useApp(s => s.models);
-  const list = [{ value: '', name: 'Default', description: 'What Claude Code uses unless told otherwise' }, ...(models ?? FALLBACK_MODELS).filter(m => m.value && m.value !== 'default')];
+  const def = models?.find(m => m.value === 'default');
+  const defName = def ? (def.resolved ? prettyModel(def.resolved) : def.description?.split(' · ')[0]) : '';
+  const list: Model[] = [
+    { value: '', name: defName ? `Default · ${defName}` : 'Default', description: def?.description ?? 'What Claude Code uses unless told otherwise' },
+    ...(models ?? FALLBACK_MODELS).filter(m => m.value && m.value !== 'default'),
+  ];
   if (pref && !list.some(m => m.value === pref)) list.push({ value: pref, name: prettyModel(pref), description: '' });
   return (
     <label className="modelpick" title="Which Claude model answers. Takes effect on your next message."><span className="muted small">Model</span>

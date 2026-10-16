@@ -49,6 +49,7 @@ export async function start() {
   const init = await api.init();
   setApp(s => {
     s.engine = init.engine;
+    s.permissions = init.permissions ?? 'ask';
     s.theme = init.theme ?? 'system';
     s.modelPref = init.model ?? '';
     s.models = init.models ?? null;

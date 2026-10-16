@@ -47,7 +47,9 @@ export type Member = { id: string; name: string; emails: string[]; roles: string
 export type Team = { team: Member[]; capacity: number };
 
 export type ScrumoResult = { code: number; stdout: string; stderr: string; json: any };
-export type Model = { value: string; name: string; description?: string };
+export type Model = { value: string; name: string; description?: string; resolved?: string };
+/** How much the agent may do without asking (see decide() in src/engine.js). */
+export type Permissions = 'ask' | 'edits' | 'auto';
 export type Update = { version: string; canInstall: boolean };
 export type Usage = {
   days: Record<string, Record<string, { turns: number; models?: Record<string, Partial<Record<'input' | 'output' | 'cacheRead' | 'cacheWrite' | 'cost', number>>> }>>;
@@ -60,7 +62,7 @@ export type ChatSummary = { id: string; title: string; at: number };
 export type Engine = { claudePath: string | null; version: string | null };
 export type Init = {
   projects: ProjectInfo[]; open: string | null; engine: Engine; theme?: string; updates?: boolean;
-  model?: string; models?: Model[] | null; version?: string; update?: Update | null;
+  model?: string; models?: Model[] | null; version?: string; update?: Update | null; permissions?: Permissions;
 };
 export type Question = { header?: string; question: string; multiSelect?: boolean; options?: { label: string; description?: string; preview?: string }[] };
 export type AskRequest = { id: number; root: string; toolName: string; input: any };

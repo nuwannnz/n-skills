@@ -3,7 +3,7 @@ import { execFile } from 'node:child_process';
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, watch, writeFileSync } from 'node:fs';
 import { basename, dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ChatSession, chatMessages, claudeVersion, engineEnv, findClaude, loginShellPath, recentChats } from './engine.js';
+import { ChatSession, chatMessages, claudeVersion, engineEnv, findClaude, listModels, loginShellPath, PERMISSIONS, recentChats } from './engine.js';
 import * as git from './git.js';
 import { APP_ID, APP_NAME, electronBinary, installLauncher, isGlobalInstall, launcherExists, launcherPath, pkgDir } from './launcher.js';
 
@@ -16,7 +16,7 @@ if (process.env.SCRUMO_USER_DATA) app.setPath('userData', process.env.SCRUMO_USE
 if (process.platform === 'win32') app.setAppUserModelId(APP_ID);
 if (!app.requestSingleInstanceLock()) app.exit(0); // the running instance gets 'second-instance'
 let win = null;
-let autoApproveDocEdits = false;
+let permissions = 'ask'; // how much the agent may do without asking; one setting for every project, saved with the others
 const pending = new Map();
 let nextAsk = 0;
 const engine = { path: '', claudePath: null, version: null, env: {} };
@@ -138,7 +138,7 @@ function ensureSession(root) {
     root,
     claudePath: engine.claudePath,
     env: engine.env,
-    autoApproveDocEdits,
+    permissions,
     model: readSettings().model || undefined,
     resume: p.resume,
     askPerson: (request, signal) => askPerson(root, request, signal),
@@ -255,14 +255,22 @@ let ledgerTimer;
 const saveLedger = () => { clearTimeout(ledgerTimer); ledgerTimer = setTimeout(() => { try { mkdirSync(app.getPath('userData'), { recursive: true }); writeFileSync(ledgerFile(), JSON.stringify(ledger)); } catch { /* not worth failing over */ } }, 800); };
 const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
 const ZERO = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, cost: 0 };
-let modelsCache = null;
+let modelsCache = null; // the models Claude Code offers, also kept in settings so the picker is right before the first message
+
+/** Keeps the model list, saved for next time, and tells the window. */
+function setModels(list) {
+  if (!list?.length) return;
+  modelsCache = list;
+  writeSettings({ models: list });
+  send('models:list', list);
+}
 
 /** Records what a finished turn used (the difference since the last result), plan limits, and the context fill. */
 async function handleUsage(root, msg) {
   const p = get(root);
   const l = loadLedger();
   if (msg.type === 'system' && msg.subtype === 'init' && !modelsCache && p?.session) {
-    p.session.models().then(list => { if (list?.length) { modelsCache = list.map(m => ({ value: m.value, name: m.displayName, description: m.description })); send('models:list', modelsCache); } });
+    p.session.models().then(list => setModels(list?.map(m => ({ value: m.value, name: m.displayName, description: m.description, resolved: m.resolvedModel }))));
   } else if (msg.type === 'rate_limit_event' && msg.rate_limit_info) {
     const i = msg.rate_limit_info;
     const windows = Object.entries(i.unifiedWindows ?? {}); // the 5-hour and weekly windows arrive together
@@ -290,6 +298,9 @@ async function handleUsage(root, msg) {
 /* ---------- appearance: follow the system, or force light or dark ---------- */
 const settingsFile = () => join(app.getPath('userData'), 'settings.json');
 function readSettings() { try { return JSON.parse(readFileSync(settingsFile(), 'utf8')); } catch { return {}; } }
+function writeSettings(change) {
+  try { mkdirSync(app.getPath('userData'), { recursive: true }); writeFileSync(settingsFile(), JSON.stringify({ ...readSettings(), ...change }, null, 2)); } catch { /* not worth failing over */ }
+}
 function applyTheme(theme) { nativeTheme.themeSource = ['light', 'dark'].includes(theme) ? theme : 'system'; }
 
 /* ---------- updates: ask the npm registry whether a newer version is published ---------- */
@@ -323,6 +334,7 @@ ipcMain.handle('app:init', () => ({
   updates: readSettings().updates !== false,
   model: readSettings().model ?? '',
   models: modelsCache,
+  permissions,
   version: current,
   update,
 }));
@@ -357,9 +369,11 @@ ipcMain.handle('chat:answer', (_e, { id, allow, message, answers, annotations })
   const res = pending.get(id);
   if (res) { pending.delete(id); res({ allow, message, answers, annotations }); }
 });
-ipcMain.handle('settings:auto-edits', (_e, value) => {
-  autoApproveDocEdits = !!value;
-  for (const p of projects.values()) if (p.session) p.session.autoApproveDocEdits = autoApproveDocEdits;
+ipcMain.handle('settings:permissions', (_e, value) => {
+  if (!PERMISSIONS.includes(value)) return;
+  permissions = value;
+  writeSettings({ permissions });
+  for (const p of projects.values()) if (p.session) p.session.permissions = permissions; // applies from the agent's next step
 });
 
 ipcMain.handle('git:sync', (_e, root) => refreshGit(root, { fetch: true }));
@@ -385,15 +399,15 @@ ipcMain.handle('git:save', async (_e, root, { title, body }) => {
 });
 ipcMain.handle('usage:get', () => { const l = loadLedger(); const keep = Object.keys(l.days).sort().slice(-120); return { days: Object.fromEntries(keep.map(d => [d, l.days[d]])), limits: l.limits, models: modelsCache, model: readSettings().model ?? '' }; });
 ipcMain.handle('model:set', async (_e, model) => {
-  try { mkdirSync(app.getPath('userData'), { recursive: true }); writeFileSync(settingsFile(), JSON.stringify({ ...readSettings(), model: model || '' }, null, 2)); } catch { /* not worth failing over */ }
+  writeSettings({ model: model || '' });
   for (const p of projects.values()) await p.session?.setModel(model || undefined);
 });
 ipcMain.handle('settings:theme', (_e, theme) => {
   applyTheme(theme);
-  try { mkdirSync(app.getPath('userData'), { recursive: true }); writeFileSync(settingsFile(), JSON.stringify({ ...readSettings(), theme }, null, 2)); } catch { /* not worth failing over */ }
+  writeSettings({ theme });
 });
 ipcMain.handle('settings:updates', (_e, on) => {
-  try { mkdirSync(app.getPath('userData'), { recursive: true }); writeFileSync(settingsFile(), JSON.stringify({ ...readSettings(), updates: !!on }, null, 2)); } catch { /* not worth failing over */ }
+  writeSettings({ updates: !!on });
   if (on) checkForUpdate(); else update = null;
 });
 ipcMain.handle('update:install', () => new Promise(res => {
@@ -414,6 +428,10 @@ app.whenReady().then(() => {
 
   git.setPath(engine.path);
   applyTheme(process.env.SCRUMO_CLIENT_THEME ?? readSettings().theme);
+  const saved = readSettings();
+  if (PERMISSIONS.includes(saved.permissions)) permissions = saved.permissions;
+  if (saved.models?.length) modelsCache = saved.models;
+  if (engine.claudePath) listModels({ claudePath: engine.claudePath, env: engine.env, cwd: app.getPath('userData') }).then(setModels);
 
   for (const r of loadRegistry()) addProject(r);
   const arg = projectArg(process.argv) ?? (isProject(process.env.SCRUMO_PROJECT) ? resolve(process.env.SCRUMO_PROJECT) : null);

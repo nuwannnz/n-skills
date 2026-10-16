@@ -1,6 +1,6 @@
 // The bridge the preload script (src/preload.cjs) puts on window.api, typed.
 import type {
-  AskRequest, ChatSummary, Context, DocFile, FileLog, GitState, Identity, Init, Model, PickedFolder, ProjectInfo, SaveResult, ScrumoResult, Update, Usage,
+  AskRequest, ChatSummary, Context, DocFile, FileLog, GitState, Identity, Init, Model, Permissions, PickedFolder, ProjectInfo, SaveResult, ScrumoResult, Update, Usage,
 } from './types';
 
 type Events = {
@@ -40,7 +40,7 @@ export type Api = {
   setUpdates(on: boolean): Promise<void>;
   installUpdate(): Promise<{ error?: string }>;
   restart(): Promise<void>;
-  setAutoEdits(on: boolean): Promise<void>;
+  setPermissions(mode: Permissions): Promise<void>;
   git: {
     sync(root: string): Promise<GitState>;
     status(root: string): Promise<GitState>;

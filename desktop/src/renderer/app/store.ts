@@ -6,7 +6,7 @@ import { immer } from 'zustand/middleware/immer';
 import { useShallow } from 'zustand/react/shallow';
 import type { Draft } from 'immer';
 import type {
-  Context, Doc, Engine, FileLog, GitState, Identity, Model, PickedFolder, ProjectInfo, Question, Status, Team, Update, Usage, Validation,
+  Context, Doc, Engine, FileLog, GitState, Identity, Model, Permissions, PickedFolder, ProjectInfo, Question, Status, Team, Update, Usage, Validation,
 } from '../lib/types';
 
 export type View = 'usage' | 'guide' | 'chat' | 'changes' | 'sprint' | 'planning' | 'backlog' | 'board' | 'epics' | 'docs' | 'doc' | 'checks' | 'team';
@@ -45,7 +45,6 @@ export type ChatState = {
   files: Record<string, 'created' | 'updated'>;
   context: Context | null;
   lastUsage: { total: number } | null;
-  autoDocs: boolean;
   tools: Record<string, { name: string; input: any; existed: boolean }>;
   streams: number[]; // ids of the text items still streaming, oldest first
 };
@@ -92,7 +91,7 @@ export type AppState = {
   active: string | null; // root of the open project, or null for the home screen
   projects: Record<string, ProjectState>;
   engine: Engine;
-  autoEdits: boolean;
+  permissions: Permissions; // one setting for every project, saved by the main process
   theme: string;
   updatesOn: boolean;
   appVersion: string;
@@ -107,7 +106,7 @@ export type AppState = {
 };
 
 export const useApp = create<AppState>()(immer(() => ({
-  ready: false, active: null, projects: {}, engine: { claudePath: null, version: null }, autoEdits: false, theme: 'system', updatesOn: true,
+  ready: false, active: null, projects: {}, engine: { claudePath: null, version: null }, permissions: 'ask', theme: 'system', updatesOn: true,
   appVersion: '', update: null, wizard: null, usage: null, usagePeriod: 'week', modelPref: '', models: null, paletteOpen: false,
   navHidden: (() => { try { return localStorage.getItem('navHidden') === '1'; } catch { return false; } })(),
 })));
@@ -121,7 +120,7 @@ export const editProject = (root: string, fn: (p: Draft<ProjectState>) => void) 
 export const filterDefaults = (): Filters => ({ q: '', epics: [], statuses: [], assignees: [], hideDone: true });
 export const newChat = (): ChatState => ({
   items: [], pending: [], live: null, busy: false, stopping: false, replaying: false, turnStart: null, turnFiles: [], lastSent: null, flash: null,
-  title: '', files: {}, context: null, lastUsage: null, autoDocs: false, tools: {}, streams: [],
+  title: '', files: {}, context: null, lastUsage: null, tools: {}, streams: [],
 });
 export const newProject = (info: ProjectInfo): ProjectState => ({
   info, docs: [], status: null, validation: null, team: null, git: info.git, identity: null, syncing: false,

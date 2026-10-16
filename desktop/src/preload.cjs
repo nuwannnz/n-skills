@@ -23,7 +23,7 @@ contextBridge.exposeInMainWorld('api', {
   setUpdates: call('settings:updates'),
   installUpdate: call('update:install'),
   restart: call('app:restart'),
-  setAutoEdits: call('settings:auto-edits'),
+  setPermissions: call('settings:permissions'),
   git: {
     sync: call('git:sync'),
     status: call('git:status'),

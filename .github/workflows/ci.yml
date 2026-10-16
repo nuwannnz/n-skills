@@ -15,7 +15,24 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+        env:
+          ELECTRON_SKIP_BINARY_DOWNLOAD: '1' # the CLI checks never start the desktop app
       - run: npm run check
       - run: npm run build
       - name: The built CLI validates the sample project
         run: node dist/cli.js validate examples/sample-project
+
+  desktop:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+        env:
+          ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
+      - run: npm run check:desktop
+      - name: The desktop package contains what it needs
+        run: npm pack --dry-run -w desktop

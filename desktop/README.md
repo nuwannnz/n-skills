@@ -1,14 +1,15 @@
-# n-skills-client
+# scrumo desktop
 
 A proof of concept for a desktop app that lets business analysts and architects
-run [scrumo](../n-skills) skills without a terminal. It runs **the user's own
+run [scrumo](..) skills without a terminal. It runs **the user's own
 Claude Code installation**, with whatever login it already has (a Claude
 subscription, a Console API key, Bedrock, …), and shows the conversation as a
 chat with approval cards, a live document preview, and the scrumo validator.
 
 It answers one question: can an app drive the user's local Claude Code on their
 own subscription, against a scrumo project, with the app in control of what
-the agent may change? Git, pull requests, and packaging are out of scope.
+the agent may change? Packaging is covered below; the git and pull request
+workflow is described under "Projects and git".
 
 ## Install (as a user)
 
@@ -48,13 +49,13 @@ that blocks GitHub downloads, set `ELECTRON_MIRROR`.
 
 ```sh
 npm install
-npm run demo:setup    # copies n-skills' sample project to .demo/pawplan with the CLI and skills
+npm run demo:setup    # copies the repository's sample project to .demo/pawplan with the CLI and skills
 npm start             # opens the app on .demo/pawplan
 npm run icons         # rebuilds build/icon.{png,icns,ico} from build/icon.svg (macOS)
 ```
 
 Needs Node 22 and Claude Code installed and signed in (`claude`, then `/login`).
-`SCRUMO_REPO` points `demo:setup` at the n-skills checkout (default: `../n-skills`),
+`SCRUMO_REPO` points `demo:setup` at a scrumo package folder (default: the repository root),
 and `SCRUMO_PROJECT` opens a different project. **Open project…** picks any
 folder with a `scrumo.yaml`.
 
@@ -97,10 +98,89 @@ limits.
   `validate --json` and `status --json`, and relays approvals.
 - `src/renderer/` is plain HTML and JavaScript, no framework.
 
+## Working in a project
+
+The left side of a project is a short navigation instead of a tree of every
+document, so it scales to hundreds of stories:
+
+- **Chat** and **Changes**: the agent, and what is unsaved (see below).
+- **Sprint**: status, burndown, points by status, what needs attention and the
+  stories in the sprint. The burndown is worked out from the stories
+  (a story counts as finished on the day it was last updated to done).
+- **Backlog**: epics panel, search, filters (epic, status, assignee, hide done),
+  sprints and the backlog as sections. **New story** opens the chat with the
+  product owner skill.
+- **Board** (the active sprint by column) and **Epics** (progress per epic).
+- **Documents**, **Checks** and **Team**. ⌘K (Ctrl+K) finds any story or document.
+- **Sprint planning** (Sprint, then *Plan next sprint*): a screen to share in a
+  meeting. Write the goal, set capacity (defaults to the team's points), add
+  ready stories from the backlog, then *Create Sprint N*, which runs
+  `scrumo sprint plan`; *Start Sprint N* runs `scrumo sprint start`. An active
+  sprint's unfinished stories can only move over after it is closed.
+- **Team** edits the `team:` list in `scrumo.yaml` through `scrumo team
+  add|set|remove` (roles: owner, scrum-master, architect, dev, qa; points per
+  sprint feed capacity). The change shows up under Changes like any other.
+- **Documents** open full window with an outline and who last changed them
+  (from `git log`); the split icon in the header puts the chat beside any view.
+- **New project** (the + in the rail, or on the home screen): pick or create a
+  folder, name it and give it a ticket key, and the app runs `git init`, `npm
+  init`, `npm install --save-dev scrumo`, `scrumo init`, `scrumo team add --me`
+  and a first commit (progress is shown step by step). Then add the team, then
+  start the kickoff: your description goes to the product strategist skill, which
+  writes the brief. `SCRUMO_CLI` points the install at a local checkout of the
+  scrumo package instead of the npm one.
+- **Chat extras**: *History* lists earlier chats of the project (from Claude Code's
+  own transcripts) and reopens one, so the next message continues it. A panel on the
+  right lists the files the chat created or edited, and opens them. A ring shows how
+  full the conversation is. Multiple-choice questions from the agent appear as option
+  cards. The model picker applies from the next message.
+- **Appearance**: light, dark or match the system (settings).
+- **Updates**: at start and every six hours the app asks the npm registry
+  (`registry.npmjs.org/scrumo-desktop/latest`, nothing else is sent) whether a newer
+  version is published. If so, an update icon appears at the bottom of the project rail.
+  For a global npm install, *Update now* runs `npm install -g scrumo-desktop@latest` and
+  offers a restart; any other copy shows the command. Nothing happens while the package
+  isn't published. Turn it off in settings; `SCRUMO_UPDATE_URL` points the check elsewhere
+  for testing.
+
+## Projects and git
+
+- **Many projects.** The app remembers every project you open (`projects.json`
+  in the app's data folder). The home screen lists them, and a rail on the left
+  switches between them like Slack workspaces. Each project keeps its own chat,
+  open document and git state, and a chat keeps running while you look at
+  another project. Right-click a project in the rail, or use the × on its card,
+  to remove it from the list (files are never touched).
+- **Git identity per project.** The header shows who commits are made as.
+  Editing it runs `git config --local user.name` / `user.email` for that
+  project only. If you're signed in to `gh`, one click fills in that account.
+- **Stays current.** Every minute, and whenever the window gets focus, the app
+  runs `git fetch` and fast-forwards the current branch when that is safe. It
+  never merges, rebases or discards anything; a diverged branch is only reported.
+- **Save changes.** The Changes tab lists unsaved edits with their diffs. Saving
+  creates a `scrumo/…` branch (when you're on the default branch), commits,
+  pushes and opens a pull request with `gh`. Saving again on that branch adds to
+  the open pull request. Without `gh`, or without a GitHub remote, it still
+  commits (and pushes, if there's a remote) and says what it couldn't do.
+- **Review status.** Your pull requests are polled with `gh pr list`:
+  waiting for review, approved, changes requested, merged, closed, plus checks
+  and merge conflicts. A desktop notification fires when one changes, and the
+  rail shows a green or red dot. When your branch's pull request is merged and
+  the working tree is clean, the app switches back to the default branch and
+  pulls.
+- An approval request always brings the chat forward, since the agent waits on it.
+  A project tile shows a pulsing dot while its agent works, amber when it needs you.
+
+`SCRUMO_USER_DATA=<dir>` runs the app with a separate profile, for development
+beside an installed copy.
+
 ## Known gaps
 
-- **No git yet.** The agent edits the working tree directly. Next: one git
-  worktree per chat, then "Submit for review" (branch, commit, PR).
+- **Git and PRs need `git` and `gh` on the machine's PATH**, and `gh` signed in
+  (`gh auth login`). `gh` has one active account at a time, so the per-project
+  identity only sets commit authorship; the pull request is opened as the active
+  `gh` account. Opening a PR was not exercised against a live GitHub repo yet.
+- The agent still edits the working tree directly (no worktree per chat).
 - **Approval cards appear after the tool card** they belong to; they should
   replace it.
 - **One chat at a time**, and chats don't survive a restart (the SDK can

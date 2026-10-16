@@ -1,7 +1,7 @@
 // Runs scrumo skills through the user's own Claude Code installation, using
 // whatever login that installation already has (a Claude subscription, a
 // Console API key, Bedrock, ...). The app never sees or stores credentials.
-import { query } from '@anthropic-ai/claude-agent-sdk';
+import { getSessionMessages, listSessions, query } from '@anthropic-ai/claude-agent-sdk';
 import { execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { homedir } from 'node:os';
@@ -52,7 +52,7 @@ export function engineEnv(path, auth = { mode: 'local' }) {
     env[k] = v;
   }
   env.PATH = path;
-  env.CLAUDE_AGENT_SDK_CLIENT_APP = 'n-skills-client/0.0.1';
+  env.CLAUDE_AGENT_SDK_CLIENT_APP = 'scrumo-desktop';
   if (auth.mode === 'api-key') env.ANTHROPIC_API_KEY = auth.key;
   return env;
 }
@@ -91,8 +91,8 @@ export function decide(toolName, input, root) {
 
 /** One conversation: a long-lived Claude Code process fed with user messages. */
 export class ChatSession {
-  constructor({ root, claudePath, env, onMessage, askPerson, autoApproveDocEdits = false }) {
-    Object.assign(this, { root, claudePath, env, onMessage, askPerson, autoApproveDocEdits });
+  constructor({ root, claudePath, env, onMessage, askPerson, autoApproveDocEdits = false, model, resume }) {
+    Object.assign(this, { root, claudePath, env, onMessage, askPerson, autoApproveDocEdits, model, resume });
     this.queue = [];
     this.wake = null;
     this.closed = false;
@@ -111,6 +111,8 @@ export class ChatSession {
       prompt: this.input(),
       options: {
         cwd: this.root,
+        ...(this.model ? { model: this.model } : {}),
+        ...(this.resume ? { resume: this.resume } : {}),
         pathToClaudeCodeExecutable: this.claudePath,
         env: this.env,
         permissionMode: 'default',
@@ -129,7 +131,7 @@ export class ChatSession {
           if (d.docEdit && this.autoApproveDocEdits) return { behavior: 'allow', updatedInput: input };
           const answer = await this.askPerson({ toolName, input }, signal);
           return answer.allow
-            ? { behavior: 'allow', updatedInput: input }
+            ? { behavior: 'allow', updatedInput: answer.answers ? { ...input, answers: answer.answers, ...(answer.annotations ? { annotations: answer.annotations } : {}) } : input }
             : { behavior: 'deny', message: answer.message || 'The person declined this step.' };
         },
       },
@@ -149,6 +151,18 @@ export class ChatSession {
     this.wake?.();
   }
 
+  /** Switches the model for the next message; undefined goes back to Claude Code's default. */
+  async setModel(model) {
+    this.model = model || undefined;
+    await this.q?.setModel(this.model).catch(() => {});
+  }
+
+  /** The models this installation offers, or null if the session can't say. */
+  async models() { try { return await this.q.supportedModels(); } catch { return null; } }
+
+  /** How full the context window is: { totalTokens, maxTokens, percentage, model }. */
+  async context() { try { return await this.q.getContextUsage({ detail: 'summary' }); } catch { return null; } }
+
   async interrupt() { await this.q?.interrupt().catch(() => {}); }
 
   close() {
@@ -156,4 +170,16 @@ export class ChatSession {
     this.wake?.();
     this.q?.close();
   }
+}
+
+/** Earlier chats for a project folder, newest first. */
+export async function recentChats(root, limit = 30) {
+  try {
+    return (await listSessions({ dir: root, limit })).map(s => ({ id: s.sessionId, title: s.customTitle || s.summary || s.firstPrompt || 'Chat', at: s.lastModified }));
+  } catch { return []; }
+}
+
+/** The messages of an earlier chat, in the same shape the live chat produces. */
+export async function chatMessages(root, id) {
+  try { return await getSessionMessages(id, { dir: root }); } catch { return []; }
 }

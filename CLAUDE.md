@@ -21,6 +21,15 @@ Status: phases 0 to 4 are built. The first 10 skills were dry-run once by a fres
 agent (the bug, refine and change skills haven't been); runs in other agents are still to do. Not done: the starter template
 repo and publishing (owner's calls).
 
+## Monorepo
+
+The repository also contains the desktop app in `desktop/` (its own package,
+`scrumo-desktop`, with its own README and CLAUDE-relevant notes there). The root
+package stays the publishable `scrumo` CLI, and `skills/`, `spec/`, `templates/`
+and `examples/` stay at the root. `npm run rename` renames the product in
+`desktop/` too, since the app is built on the same name (`scrumo.yaml`, the
+`scrumo-` skill prefix). Desktop commands: `npm run check:desktop`, `npm run desktop`.
+
 ## Commands
 
 ```sh

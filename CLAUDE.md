@@ -28,7 +28,11 @@ The repository also contains the desktop app in `desktop/` (its own package,
 package stays the publishable `scrumo` CLI, and `skills/`, `spec/`, `templates/`
 and `examples/` stay at the root. `npm run rename` renames the product in
 `desktop/` too, since the app is built on the same name (`scrumo.yaml`, the
-`scrumo-` skill prefix). Desktop commands: `npm run check:desktop`, `npm run desktop`.
+`scrumo-` skill prefix). Desktop commands: `npm run check:desktop`, `npm run desktop`,
+`npm run desktop:dev` (hot reload). The desktop window (`desktop/src/renderer/`)
+is React and TypeScript built with Vite: features live in `features/<name>/`,
+reusable presentational components in `ui/` (props only, no store or IPC), and
+the store in `app/store.ts`. See the desktop README's architecture section.
 
 ## Commands
 

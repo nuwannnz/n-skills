@@ -1,7 +1,7 @@
 // Makes a throwaway scrumo project to point the app at: a copy of the repository's
 // sample project in its own git repo, with the scrumo CLI and skills installed.
 //   node scripts/setup-demo.js [target]      (SCRUMO_REPO=path/to/the/scrumo/package)
-import { cpSync, existsSync, mkdirSync, rmSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -22,7 +22,8 @@ mkdirSync(target, { recursive: true });
 cpSync(sample, target, { recursive: true });
 
 run('git', ['init', '-q'], target);
-run('npm', ['init', '-y', '--silent'], target);
+// Written by hand: `npm init` inside this repository would find desktop/package.json and change that instead.
+writeFileSync(join(target, 'package.json'), `${JSON.stringify({ name: 'pawplan', private: true }, null, 2)}\n`);
 run('npm', ['install', '--save-dev', '--silent', scrumoRepo], target);
 run(join(target, 'node_modules/.bin/scrumo'), ['install', '--agents', 'claude'], target);
 run('sh', ['-c', 'printf "node_modules/\\n" > .gitignore'], target);

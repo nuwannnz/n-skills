@@ -14,6 +14,7 @@ const GLYPH = {
   checks: <><circle cx="12" cy="12" r="8.5" /><path d="M8.5 12.2l2.5 2.5 4.5-5" /></>,
   team: <><circle cx="9" cy="8" r="3.2" /><path d="M3 19c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5M16 5.5a3 3 0 0 1 0 5.6M18 14c1.7.7 3 2.3 3 4.5" /></>,
   search: <><circle cx="11" cy="11" r="6.5" /><path d="M16 16l4 4" /></>,
+  sidebar: <><rect x="3" y="4" width="18" height="16" rx="2.5" /><path d="M9 4v16M5.5 8.5h1M5.5 11.5h1" /></>,
   split: <><rect x="3" y="4" width="18" height="16" rx="2.5" /><path d="M10 4v16" /></>,
   expand: <path d="M14 4h6v6M20 4l-8 8M10 20H4v-6M4 20l8-8" />,
   stop: <rect x="6" y="6" width="12" height="12" rx="2.5" fill="currentColor" />,

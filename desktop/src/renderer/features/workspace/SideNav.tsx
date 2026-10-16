@@ -4,10 +4,10 @@ import { setApp, useApp, type ProjectView, type View } from '../../app/store';
 import { currentSprint, epicsOf, storiesOf } from '../../lib/data';
 import { ago } from '../../lib/format';
 import { useNow } from '../../lib/useNow';
-import { Badge, Count, cx, Icon, Kbd, NavIcon, Spinner, type IconName } from '../../ui';
+import { Badge, Count, cx, Icon, IconButton, Kbd, NavIcon, Spinner, type IconName } from '../../ui';
 import { guideDone, guideSteps } from '../guide/steps';
 import { syncNow } from '../projects/actions';
-import { openDoc, setView } from './navigation';
+import { openDoc, setView, toggleNav } from './navigation';
 
 const NAV_COLOR: Record<string, string> = {
   guide: 'var(--accent)', usage: '#0891b2', chat: 'var(--blue)', changes: 'var(--warn)', sprint: 'var(--accent)', backlog: 'var(--purple)', board: '#c2417a',
@@ -33,12 +33,14 @@ export function SideNav({ p }: { p: ProjectView }) {
   const pinned = PINNED.map(path => p.docs.find(d => d.path === path)).filter(d => !!d);
   return (
     <aside className="sidenav" id="sideNav">
-      <div className="sn-head"><b>{p.info.name}</b>
+      <div className="sn-head">
+        <IconButton icon="sidebar" label="Hide the sidebar" title="Hide the sidebar (⌘\)" className="sn-hide" id="navHide" onClick={toggleNav} />
+        <b>{p.info.name}</b>
         {g?.repo
           ? <button type="button" className="syncline" title="Fetch the latest changes now" onClick={() => syncNow(p.info.root)}><Icon name="branch" size={13} />{g.branch} · {sync}</button>
           : <span className="muted small">Not a git repository</span>}
       </div>
-      <button type="button" className="findbox" onClick={() => setApp(s => { s.paletteOpen = true; })}><Icon name="search" size={15} />Find a story or document<Kbd>⌘K</Kbd></button>
+      <button type="button" className="findbox" title="Find a story or document (⌘K)" onClick={() => setApp(s => { s.paletteOpen = true; })}><Icon name="search" size={15} /><span>Search</span><Kbd>⌘K</Kbd></button>
       {p.status ? <div>{item('guide', done ? 'Workflow' : 'Get started', done ? null : <Badge>{steps.filter(x => x.state === 'done').length}/{steps.length}</Badge>)}</div> : null}
       <div><div className="grp">Work with the agent</div>
         {item('chat', 'Chat', pending ? <Badge tone="warn">{pending}</Badge> : null)}

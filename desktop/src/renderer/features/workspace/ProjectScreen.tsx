@@ -1,6 +1,6 @@
 // One open project: navigation, header, the chat pane and the current view (side by side when split), and the drawer.
 import { useLayoutEffect, useRef } from 'react';
-import type { ProjectView } from '../../app/store';
+import { useApp, type ProjectView } from '../../app/store';
 import { cx } from '../../ui';
 import { BacklogView } from '../backlog/BacklogView';
 import { BoardView } from '../board/BoardView';
@@ -24,9 +24,10 @@ import { SideNav } from './SideNav';
 const WITH_NEXT_BAR = ['sprint', 'backlog', 'board', 'epics', 'docs'];
 
 export function ProjectScreen({ p }: { p: ProjectView }) {
+  const navHidden = useApp(s => s.navHidden);
   return (
-    <div className="project" id="project">
-      <SideNav p={p} />
+    <div className={cx('project', navHidden && 'nav-hidden')} id="project">
+      {navHidden ? null : <SideNav p={p} />}
       <div className="content">
         <Header p={p} />
         <main className={cx('main', p.split && p.view !== 'chat' && 'split')} id="main" data-view={p.view}>

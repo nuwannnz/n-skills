@@ -1,5 +1,5 @@
 // Moving around inside the open project: views, the full document, the side drawer, and handing text to the chat.
-import { app, editProject, type View } from '../../app/store';
+import { app, editProject, setApp, type View } from '../../app/store';
 import { isEpic, isStory } from '../../lib/data';
 import { refreshUsage } from '../usage/actions';
 
@@ -54,6 +54,11 @@ export function peek(path: string, { push = false } = {}) {
 
 export const peekBack = () => { const root = active(); if (root) editProject(root, p => { p.peek = p.peekTrail.pop() ?? null; }); };
 export const closePeek = () => { const root = active(); if (root) editProject(root, p => { p.peek = null; p.peekTrail = []; }); };
+/** Hides or shows the project sidebar; the choice is remembered on this computer. */
+export function toggleNav() {
+  setApp(s => { s.navHidden = !s.navHidden; });
+  try { localStorage.setItem('navHidden', app().navHidden ? '1' : '0'); } catch { /* storage may be unavailable */ }
+}
 export const toggleSplit = () => { const root = active(); if (root) editProject(root, p => { p.split = !p.split; }); };
 
 /** Opens the chat with a skill picked and the start of a message typed, ready to finish. */

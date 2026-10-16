@@ -13,6 +13,8 @@ permissions:
 
 jobs:
   publish:
+    # Releases tagged desktop-v* belong to publish-desktop.yml.
+    if: ${{ !startsWith(github.event.release.tag_name, 'desktop-v') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -22,7 +24,10 @@ jobs:
           registry-url: https://registry.npmjs.org
           cache: npm
       - run: npm ci
+        env:
+          ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
       - run: npm run check
+      # Publishes the scrumo CLI (the repository root). The desktop app (desktop/) is published separately.
       - run: npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src file:; style-src file: 'unsafe-inline'; img-src file: data:">
+  <title>scrumo</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="layout.css">
+</head>
+<body>
+  <div class="app">
+    <nav class="rail" aria-label="Projects">
+      <div class="rail-top">
+        <button class="tile home" id="homeBtn" title="All projects" aria-label="All projects"></button>
+        <div class="rail-sep"></div>
+        <div class="rail-projects" id="railProjects"></div>
+        <button class="tile add" id="addBtn" title="Open a project…" aria-label="Open a project">+</button>
+      </div>
+      <button class="tile update" id="updateBtn" hidden></button>
+    </nav>
+
+    <section class="workspace">
+      <div class="homeview" id="home" hidden>
+        <div class="home-inner">
+          <h1>Your projects</h1>
+          <p class="muted" id="homeSub"></p>
+          <div class="home-grid">
+            <div class="cards" id="cards"></div>
+            <aside class="attention card" id="homeAttention"></aside>
+          </div>
+        </div>
+      </div>
+
+      <div class="homeview" id="wizard" hidden><div class="home-inner" id="wizardBody"></div></div>
+
+      <div class="project" id="project" hidden>
+        <aside class="sidenav" id="sideNav"></aside>
+        <div class="content">
+          <header class="pbar">
+            <button class="icon-btn" id="backBtn" title="Back" aria-label="Back" hidden></button>
+            <div class="crumbs" id="crumbs"></div>
+            <div class="pright">
+              <button class="icon-btn" id="splitBtn" title="Side by side with chat" aria-label="Side by side with chat" hidden></button>
+              <span class="chip static" id="engineChip" title="Using your own Claude Code and login"></span>
+              <button class="chip" id="idBtn" title="Who your commits are made as"></button>
+              <button class="btn primary small" id="saveBtn" hidden>Save changes</button>
+              <button class="icon-btn" id="gearBtn" title="Settings" aria-label="Settings"></button>
+            </div>
+          </header>
+
+          <main class="main" id="main" data-view="chat">
+            <div class="panes">
+              <div class="pane chat" id="paneChat">
+                <div class="chat-main">
+                  <div class="chatbar"><span class="ctitle" id="chatTitle">New chat</span><span class="grow"></span>
+                    <button class="btn small ghost" id="histBtn" title="Earlier chats in this project">History</button>
+                    <button class="btn small ghost" id="newChat">New chat</button></div>
+                  <div class="thread" id="thread"></div>
+                  <div class="composer-wrap">
+                    <div class="composer">
+                      <label class="skillpill" title="Pick which agent skill runs your message"><span class="slash">/</span><select id="skill" aria-label="Skill"></select></label>
+                      <textarea id="prompt" rows="2" placeholder="Describe what you need. For example: the clinic decided late cancellations cost a €15 fee, which unblocks PAW-9."></textarea>
+                      <div class="composer-bar">
+                        <label class="modelpick" title="Which Claude model answers. Takes effect on your next message."><span class="muted small">Model</span><select id="modelPick" aria-label="Model"></select></label>
+                        <span class="ctxring" id="ctxRing"></span>
+                        <span class="muted small" id="chatState"></span>
+                        <span class="grow"></span>
+                        <button class="btn danger icon-only" id="stopBtn" title="Stop" aria-label="Stop" hidden></button>
+                        <button class="btn primary" id="sendBtn">Send</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <aside class="chatfiles" id="chatFiles" aria-label="Files changed in this chat" hidden></aside>
+              </div>
+              <div class="pane scroll" id="paneView"></div>
+            </div>
+          </main>
+          <aside class="drawer" id="drawer" aria-label="Details" hidden></aside>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="palette-wrap" id="palette" hidden>
+    <div class="palette" role="dialog" aria-label="Find a story or document">
+      <input id="paletteInput" placeholder="Find a story or document" autocomplete="off">
+      <div class="palette-list" id="paletteList"></div>
+    </div>
+  </div>
+  <div class="pop" id="pop" hidden></div>
+  <div class="toasts" id="toasts"></div>
+  <script src="vendor/marked.min.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

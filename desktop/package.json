@@ -1,0 +1,46 @@
+{
+  "name": "scrumo-desktop",
+  "version": "0.5.2",
+  "description": "Desktop app for scrumo: business analysts and architects run spec-driven skills through their own Claude Code.",
+  "license": "MIT",
+  "type": "module",
+  "main": "src/main.js",
+  "bin": {
+    "scrumo-desktop": "bin/scrumo-desktop.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "build/icon.png",
+    "build/icon.icns",
+    "build/icon.ico",
+    "scripts/postinstall.js"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "electron .",
+    "postinstall": "node scripts/postinstall.js",
+    "demo:setup": "node scripts/setup-demo.js",
+    "smoke": "node scripts/smoke.js",
+    "icons": "electron scripts/make-icons.js",
+    "check": "node scripts/check.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "0.3.299",
+    "electron": "44.7.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nuwannnz/n-skills.git",
+    "directory": "desktop"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "bugs": {
+    "url": "https://github.com/nuwannnz/n-skills/issues"
+  },
+  "homepage": "https://github.com/nuwannnz/n-skills/tree/main/desktop#readme"
+}

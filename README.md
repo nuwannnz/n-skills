@@ -10,6 +10,26 @@ It is built for several people working together: every story has an assignee,
 ticket numbers are checked so two branches can't reuse one, the roles are
 separate, and the shared state is plain files that merge like code.
 
+## Repository layout
+
+This repository holds two packages that are released separately:
+
+| Path | Package | What it is |
+| --- | --- | --- |
+| `/` (root) | [`scrumo`](https://www.npmjs.com/package/scrumo) | The CLI, the validator, the skills (`skills/`), the spec and the templates. |
+| `desktop/` | `scrumo-desktop` | A desktop app for business analysts and architects: chat, sprint views, planning and team, over the same documents. See [desktop/README.md](desktop/README.md). |
+
+It is an npm workspace, so one `npm install` at the root sets up both. The skills
+stay at the root so that skill installers (`npx skills add nuwannnz/n-skills`)
+keep finding them. Useful commands: `npm run check` (the CLI), `npm run
+check:desktop`, `npm run desktop` (start the app on a demo project; run `npm run
+demo:setup -w desktop` first). Setting `ELECTRON_SKIP_BINARY_DOWNLOAD=1` skips the
+130 MB Electron download when you only work on the CLI.
+
+Releases: the CLI is published by a GitHub release tagged `vX.Y.Z`; the desktop app by
+a release tagged `desktop-vX.Y.Z` (the tag must match `desktop/package.json`). Each tag
+runs its own workflow, so the two never publish together.
+
 ## Set up a project
 
 In the repository you want to manage:

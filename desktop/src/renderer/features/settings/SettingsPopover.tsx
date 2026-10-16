@@ -4,15 +4,16 @@ import { setApp, useApp, type ProjectView } from '../../app/store';
 import { api } from '../../lib/api';
 import { Button, Check, Popover } from '../../ui';
 import { removeProject } from '../projects/actions';
+import { PermissionSelect } from './PermissionSelect';
 
 export function SettingsPopover({ p, anchor, onClose }: { p: ProjectView; anchor: HTMLElement; onClose: () => void }) {
-  const { autoEdits, updatesOn, theme, appVersion, engine } = useApp(useShallow(s => ({ autoEdits: s.autoEdits, updatesOn: s.updatesOn, theme: s.theme, appVersion: s.appVersion, engine: s.engine })));
+  const { updatesOn, theme, appVersion, engine } = useApp(useShallow(s => ({ updatesOn: s.updatesOn, theme: s.theme, appVersion: s.appVersion, engine: s.engine })));
   return (
     <Popover anchor={anchor} onClose={onClose} align="right">
       <div className="pop-body">
         <h3>Settings</h3>
-        <Check checked={autoEdits} onChange={v => { setApp(s => { s.autoEdits = v; }); api.setAutoEdits(v); }}>Approve edits to documents automatically</Check>
-        <p className="muted small">Edits outside docs/ are always refused, and other commands still ask.</p>
+        <label>Permissions<PermissionSelect /></label>
+        <p className="muted small">For every project, and kept when the app restarts. <b>Ask</b>: edits and commands ask first. <b>Accept edits</b>: edits under docs/ go ahead. <b>Auto</b>: edits and commands go ahead, but deleting files, git push and similar still ask. Edits outside docs/ are always refused.</p>
         <Check checked={updatesOn} onChange={v => { setApp(s => { s.updatesOn = v; if (!v) s.update = null; }); api.setUpdates(v); }}>Check for app updates</Check>
         <label>Appearance
           <select value={theme} onChange={e => { const v = e.target.value; setApp(s => { s.theme = v; }); api.setTheme(v); }}>

@@ -6,6 +6,7 @@ import { api } from '../../lib/api';
 import { ago, elapsed } from '../../lib/format';
 import type { AskRequest, ChatSummary } from '../../lib/types';
 import { loadDocs, refreshAll } from '../projects/actions';
+import { setPermissions } from '../settings/actions';
 import { setView } from '../workspace/navigation';
 
 export const EDIT_TOOLS = ['Edit', 'Write', 'MultiEdit'];
@@ -170,11 +171,6 @@ export function onAsk(req: AskRequest) {
     return beforeAsk(root);
   }
   const file = input.file_path ? relPath(root, input.file_path) : '';
-  if (EDIT_TOOLS.includes(toolName) && file.startsWith('docs/') && p.chat.autoDocs) {
-    api.answer({ id, allow: true });
-    editProject(root, x => setLive(x.chat, 'step', ...stepLabel(root, toolName, input)));
-    return;
-  }
   editProject(root, x => {
     x.chat.pending.push({ id, kind: 'approval', toolName, input, file, exists: x.docs.some(d => d.path === file) });
     if (file && toolName !== 'Bash') x.selected = file;
@@ -182,12 +178,13 @@ export function onAsk(req: AskRequest) {
   beforeAsk(root);
 }
 
-export async function answerApproval(root: string, card: Extract<Pending, { kind: 'approval' }>, allow: boolean, autoDocs: boolean) {
+/** `acceptEdits` also stops asking about edits under docs/, everywhere (the Accept edits permission). */
+export async function answerApproval(root: string, card: Extract<Pending, { kind: 'approval' }>, allow: boolean, acceptEdits: boolean) {
   const { id, toolName, input, file } = card;
   const verb = `You ${allow ? 'allowed' : 'denied'}`;
+  if (allow && acceptEdits && app().permissions === 'ask') setPermissions('edits');
   editProject(root, p => {
     const c = p.chat;
-    if (allow && autoDocs) c.autoDocs = true;
     removePending(c, id);
     if (EDIT_TOOLS.includes(toolName)) push(c, { kind: 'decided', ok: allow, text: `${verb} the edit to `, mono: file });
     else if (toolName === 'Bash') push(c, { kind: 'decided', ok: allow, text: `${verb} `, mono: String(input.command ?? '').slice(0, 80) });

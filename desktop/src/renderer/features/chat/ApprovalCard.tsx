@@ -1,6 +1,6 @@
 // A step that needs the person's OK: an edit under docs/, a command, or another tool.
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import type { Pending } from '../../app/store';
+import { useApp, type Pending } from '../../app/store';
 import { Button, Check, CodeBox, Diff, Grow, Icon } from '../../ui';
 import { openDoc } from '../workspace/navigation';
 import { answerApproval, EDIT_TOOLS } from './actions';
@@ -13,7 +13,8 @@ export function ApprovalCard({ root, card }: { root: string; card: Extract<Pendi
   const [auto, setAuto] = useState(false);
   useEffect(() => { ref.current?.focus({ preventScroll: true }); }, []);
   const isEdit = EDIT_TOOLS.includes(toolName);
-  const docEdit = isEdit && file.startsWith('docs/');
+  const asking = useApp(s => s.permissions === 'ask');
+  const docEdit = isEdit && file.startsWith('docs/') && asking;
 
   let title = `Allow ${toolName}?`;
   let sub: ReactNode = null;
@@ -46,7 +47,7 @@ export function ApprovalCard({ root, card }: { root: string; card: Extract<Pendi
       </div>
       {body}
       <div className="ask-foot">
-        {docEdit ? <Check small checked={auto} onChange={setAuto}>Don’t ask again for edits in docs/ during this chat</Check> : null}
+        {docEdit ? <Check small checked={auto} onChange={setAuto}>Don’t ask again for edits in docs/ (switches permissions to Accept edits)</Check> : null}
         <Grow />
         {isEdit && exists ? <Button variant="ghost" size="small" className="view-doc" onClick={() => openDoc(file, { full: true })}>Open the document</Button> : null}
         <Button variant="deny" data-deny onClick={() => answerApproval(root, card, false, false)}>Deny</Button>

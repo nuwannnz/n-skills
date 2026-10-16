@@ -73,29 +73,58 @@ export function isSafeCommand(cmd) {
   });
 }
 
+/** Commands that always ask, even in Auto: deleting, elevated rights, rewriting or publishing git history, piping downloads into a shell. */
+const RISKY = /(^|[\s;&|(])(rm|rmdir|sudo|su|chmod|chown|dd|mkfs|kill|killall)(\s|$)|\bgit\s+(push|reset\s+--hard|clean|checkout\s+--|restore|rebase|branch\s+-D)\b|\b(curl|wget)\b[^|]*\|\s*(ba|z)?sh\b/;
+/** Tools that only read or plan, so they never need the person's OK. */
+const HARMLESS = ['Read', 'Glob', 'Grep', 'LS', 'NotebookRead', 'Skill', 'TodoWrite', 'ToolSearch', 'Task', 'Agent', 'WebSearch'];
+
+/** How much the agent may do without asking: 'ask' (edits and commands ask), 'edits' (edits under docs/ don't), 'auto' (neither does). */
+export const PERMISSIONS = ['ask', 'edits', 'auto'];
+
 /**
- * The app's permission policy, applied before asking the person: scrumo and
- * read-only commands run, edits outside docs/ are refused, and everything else
- * (edits inside docs/, other commands) is put to the person.
+ * The app's permission policy, applied before asking the person. Edits outside
+ * docs/ are always refused and the agent's questions always reach the person;
+ * scrumo, read-only commands and reading or planning tools always run. What is
+ * left (edits inside docs/, other commands, other tools) depends on the mode.
  */
-export function decide(toolName, input, root) {
-  if (toolName === 'Bash') return isSafeCommand(String(input.command ?? '')) ? { allow: true } : { ask: true };
+export function decide(toolName, input, root, mode = 'ask') {
+  if (toolName === 'AskUserQuestion') return { ask: true };
+  if (HARMLESS.includes(toolName)) return { allow: true };
+  if (toolName === 'Bash') {
+    const cmd = String(input.command ?? '');
+    if (isSafeCommand(cmd)) return { allow: true };
+    return mode === 'auto' && !RISKY.test(cmd) ? { allow: true } : { ask: true };
+  }
   if (['Edit', 'Write', 'MultiEdit', 'NotebookEdit'].includes(toolName)) {
     const file = String(input.file_path ?? input.notebook_path ?? '');
     const rel = relative(join(root, 'docs'), resolve(root, file));
     if (rel.startsWith('..') || isAbsolute(rel)) return { deny: 'This app only lets the agent change files under docs/. Explain the change to the person instead.' };
-    return { ask: true, docEdit: true };
+    return mode === 'ask' ? { ask: true } : { allow: true };
   }
-  return { ask: true };
+  return mode === 'auto' ? { allow: true } : { ask: true };
 }
 
 /** Stream events worth passing on: a new message or block starting, and reply text. The rest would only flood the window. */
 const keepStream = e => e?.type === 'message_start' || e?.type === 'content_block_start' || (e?.type === 'content_block_delta' && e.delta?.type === 'text_delta');
 
+/**
+ * The models this Claude Code offers, as { value, name, description, resolved }. Starts
+ * Claude Code just long enough to ask; no message is sent, so nothing is used up.
+ */
+export async function listModels({ claudePath, env, cwd }) {
+  const abort = new AbortController();
+  const idle = (async function* () { await new Promise(r => abort.signal.addEventListener('abort', r)); })();
+  const q = query({ prompt: idle, options: { cwd, pathToClaudeCodeExecutable: claudePath, env, settingSources: [], abortController: abort } });
+  try {
+    const list = await Promise.race([q.supportedModels(), new Promise((_, no) => setTimeout(() => no(new Error('timeout')), 30000))]);
+    return list.map(m => ({ value: m.value, name: m.displayName, description: m.description, resolved: m.resolvedModel }));
+  } catch { return null; } finally { abort.abort(); }
+}
+
 /** One conversation: a long-lived Claude Code process fed with user messages. */
 export class ChatSession {
-  constructor({ root, claudePath, env, onMessage, askPerson, autoApproveDocEdits = false, model, resume }) {
-    Object.assign(this, { root, claudePath, env, onMessage, askPerson, autoApproveDocEdits, model, resume });
+  constructor({ root, claudePath, env, onMessage, askPerson, permissions = 'ask', model, resume }) {
+    Object.assign(this, { root, claudePath, env, onMessage, askPerson, permissions, model, resume });
     this.queue = [];
     this.wake = null;
     this.closed = false;
@@ -130,10 +159,9 @@ export class ChatSession {
         // Partial messages drive the chat's live status and stream the reply as it is written.
         includePartialMessages: true,
         canUseTool: async (toolName, input, { signal }) => {
-          const d = decide(toolName, input, this.root);
+          const d = decide(toolName, input, this.root, this.permissions);
           if (d.allow) return { behavior: 'allow', updatedInput: input };
           if (d.deny) return { behavior: 'deny', message: d.deny };
-          if (d.docEdit && this.autoApproveDocEdits) return { behavior: 'allow', updatedInput: input };
           const answer = await this.askPerson({ toolName, input }, signal);
           return answer.allow
             ? { behavior: 'allow', updatedInput: answer.answers ? { ...input, answers: answer.answers, ...(answer.annotations ? { annotations: answer.annotations } : {}) } : input }

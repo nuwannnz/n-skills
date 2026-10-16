@@ -91,10 +91,14 @@ limits.
 - Only the project's settings and skills load (`settingSources: ['project']`),
   and the user's claude.ai connectors and MCP servers are switched off, so the
   agent only has the tools this app chooses.
-- **Permission policy** (`decide()` in `src/engine.js`): scrumo and plain read-only
-  commands run; edits outside `docs/` are refused; edits inside `docs/` and any
-  other command go to the person as an approval card. "Approve doc edits
-  automatically" skips the card for edits inside `docs/` only.
+- **Permission policy** (`decide()` in `src/engine.js`): scrumo, plain read-only
+  commands and reading or planning tools (loading a skill, the to-do list) always
+  run; edits outside `docs/` are always refused; the agent's questions always
+  reach the person. The rest follows the **Permissions** setting, picked in the
+  chat box or in settings and saved for every project: *Ask* puts edits inside
+  `docs/` and other commands to the person as approval cards, *Accept edits* lets
+  edits inside `docs/` through, and *Auto* lets edits and commands through except
+  risky ones (deleting files, `sudo`, `git push`, hard resets), which still ask.
 - `src/main.js` is the Electron main process: it lists `docs/`, watches it for
   changes, runs the project's own `node_modules/.bin/scrumo` for
   `validate --json` and `status --json`, and relays approvals.
@@ -151,7 +155,8 @@ document, so it scales to hundreds of stories:
   own transcripts) and reopens one, so the next message continues it. A panel on the
   right lists the files the chat created or edited, and opens them. A ring shows how
   full the conversation is. Multiple-choice questions from the agent appear as option
-  cards. The model picker applies from the next message.
+  cards. The model picker lists what your Claude Code offers (asked at start, without
+  sending anything, and kept for next time) and applies from the next message.
 - **Appearance**: light, dark or match the system (settings).
 - **Updates**: at start and every six hours the app asks the npm registry
   (`registry.npmjs.org/scrumo-desktop/latest`, nothing else is sent) whether a newer

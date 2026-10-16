@@ -1,6 +1,6 @@
 {
   "name": "scrumo-desktop",
-  "version": "0.5.2",
+  "version": "0.5.9",
   "description": "Desktop app for scrumo: business analysts and architects run spec-driven skills through their own Claude Code.",
   "license": "MIT",
   "type": "module",

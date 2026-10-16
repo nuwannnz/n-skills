@@ -103,11 +103,13 @@ export type AppState = {
   modelPref: string;
   models: Model[] | null;
   paletteOpen: boolean;
+  navHidden: boolean; // the project sidebar, hidden with ⌘\ and remembered on this computer
 };
 
 export const useApp = create<AppState>()(immer(() => ({
   ready: false, active: null, projects: {}, engine: { claudePath: null, version: null }, autoEdits: false, theme: 'system', updatesOn: true,
   appVersion: '', update: null, wizard: null, usage: null, usagePeriod: 'week', modelPref: '', models: null, paletteOpen: false,
+  navHidden: (() => { try { return localStorage.getItem('navHidden') === '1'; } catch { return false; } })(),
 })));
 
 export const app = () => useApp.getState();

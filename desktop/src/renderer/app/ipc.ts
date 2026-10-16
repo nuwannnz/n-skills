@@ -5,7 +5,7 @@ import { onAsk, onAskCancel, onMessage, stop } from '../features/chat/actions';
 import { makeProject, refreshAll, show } from '../features/projects/actions';
 import { refreshUsage } from '../features/usage/actions';
 import { editWizard } from '../features/wizard/actions';
-import { closePeek } from '../features/workspace/navigation';
+import { closePeek, toggleNav } from '../features/workspace/navigation';
 import { app, editProject, getProject, setApp } from './store';
 
 function listen() {
@@ -29,7 +29,7 @@ function listen() {
   });
 }
 
-/** Esc closes the drawer, or stops the agent while you watch it; ⌘K (Ctrl+K) opens the finder. Popovers take Esc first. */
+/** Esc closes the drawer, or stops the agent while you watch it; ⌘K (Ctrl+K) opens the finder; ⌘\ hides the sidebar. Popovers take Esc first. */
 function keys() {
   document.addEventListener('keydown', e => {
     const s = app();
@@ -39,6 +39,7 @@ function keys() {
       else if (p.chat.busy && p.view === 'chat') stop(p.info.root);
     }
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k' && s.active) { e.preventDefault(); setApp(x => { x.paletteOpen = true; }); }
+    if ((e.metaKey || e.ctrlKey) && e.key === '\\' && s.active) { e.preventDefault(); toggleNav(); }
   });
 }
 

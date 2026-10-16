@@ -20,7 +20,7 @@ export function ChatPane({ p }: { p: ProjectView }) {
     <div className={cx('pane chat', asking && 'asking')} id="paneChat">
       <div className="chat-main">
         <div className="chatbar">
-          <span className="ctitle" id="chatTitle">{chat.title || 'New chat'}</span><Grow />
+          <span className="ctitle" id="chatTitle">{chat.title}</span><Grow />
           <ChatPill chat={chat} />
           <HistoryButton root={root} name={p.info.name} />
           <IconButton icon="plus" label="New chat" id="newChat" onClick={() => startNewChat(root)} />

@@ -435,6 +435,7 @@ app.whenReady().then(() => {
     title: APP_NAME,
     icon,
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
+    trafficLightPosition: process.platform === 'darwin' ? { x: 11, y: 17 } : undefined, // the three buttons are about 62px wide: centred over the 84px project rail
     backgroundColor: '#ffffff',
     webPreferences: { preload: join(here, 'preload.cjs'), contextIsolation: true, sandbox: true, nodeIntegration: false },
   });

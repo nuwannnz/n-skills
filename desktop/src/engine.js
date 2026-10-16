@@ -52,7 +52,7 @@ export function engineEnv(path, auth = { mode: 'local' }) {
     env[k] = v;
   }
   env.PATH = path;
-  env.CLAUDE_AGENT_SDK_CLIENT_APP = 'n-skills-client/0.0.1';
+  env.CLAUDE_AGENT_SDK_CLIENT_APP = 'scrumo-desktop';
   if (auth.mode === 'api-key') env.ANTHROPIC_API_KEY = auth.key;
   return env;
 }

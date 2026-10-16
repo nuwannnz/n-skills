@@ -9,6 +9,7 @@ import { APP_ID, APP_NAME, electronBinary, installLauncher, isGlobalInstall, lau
 
 const here = dirname(fileURLToPath(import.meta.url));
 const icon = join(here, '../build/icon.png');
+const renderer = join(here, '../dist/renderer/index.html');
 
 app.setName(APP_NAME);
 if (process.env.SCRUMO_USER_DATA) app.setPath('userData', process.env.SCRUMO_USER_DATA); // a separate profile for development, so it can run beside the installed app
@@ -434,10 +435,14 @@ app.whenReady().then(() => {
     title: APP_NAME,
     icon,
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
-    backgroundColor: '#f2f5f9',
+    backgroundColor: '#ffffff',
     webPreferences: { preload: join(here, 'preload.cjs'), contextIsolation: true, sandbox: true, nodeIntegration: false },
   });
-  win.loadFile(join(here, 'renderer/index.html'));
+  // The renderer is built by Vite into dist/renderer; `npm run dev` serves it with hot reload instead.
+  const devUrl = process.env.SCRUMO_RENDERER_URL;
+  if (devUrl) win.loadURL(devUrl);
+  else if (existsSync(renderer)) win.loadFile(renderer);
+  else dialog.showErrorBox(APP_NAME, `The app's window isn't built yet. Run "npm run build -w desktop" and start it again.`);
   win.on('focus', () => send('app:focus'));
 
   // Dev aids. SCRUMO_CLIENT_SNAPSHOT=out.png saves a screenshot after load and logs renderer
@@ -463,7 +468,7 @@ app.whenReady().then(() => {
       if (!demoPrompt) return shoot();
       await js(`document.querySelector('#prompt').value = ${JSON.stringify(demoPrompt)}; document.querySelector('#sendBtn').click();`);
       const timer = setInterval(async () => {
-        const done = await js(`document.querySelectorAll('[data-allow]').forEach(b => b.click()); !!document.querySelector('.result, .info.err')`);
+        const done = await js(`document.querySelectorAll('[data-allow]').forEach(b => b.click()); !!document.querySelector('.turn-end')`);
         if (done) { clearInterval(timer); setTimeout(shoot, 1500); }
       }, 1000);
     }, Number(process.env.SCRUMO_CLIENT_SNAPSHOT_DELAY ?? 3000)));

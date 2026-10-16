@@ -50,7 +50,9 @@ that blocks GitHub downloads, set `ELECTRON_MIRROR`.
 ```sh
 npm install
 npm run demo:setup    # copies the repository's sample project to .demo/pawplan with the CLI and skills
-npm start             # opens the app on .demo/pawplan
+npm start             # builds the window (Vite) and opens the app on .demo/pawplan
+npm run dev           # the same, with the window served by Vite: React edits show up without a restart
+npm run check         # syntax of the main-process files, renderer typecheck, renderer build
 npm run icons         # rebuilds build/icon.{png,icns,ico} from build/icon.svg (macOS)
 ```
 
@@ -96,7 +98,23 @@ limits.
 - `src/main.js` is the Electron main process: it lists `docs/`, watches it for
   changes, runs the project's own `node_modules/.bin/scrumo` for
   `validate --json` and `status --json`, and relays approvals.
-- `src/renderer/` is plain HTML and JavaScript, no framework.
+- `src/renderer/` is the window: React 19 and TypeScript, built by Vite into
+  `dist/renderer/` (which the main process loads, and which the npm package
+  ships). The page's content security policy is added at build time, so the dev
+  server can hot-reload. It is laid out by feature:
+  - `app/`: the root component, the store (zustand with immer; one entry per
+    open project, so switching projects keeps chats, filters and drafts) and
+    `ipc.ts`, which turns the main process's events into store changes.
+  - `features/<name>/`: one folder per part of the app (chat, sprint, backlog,
+    board, epics, documents, planning, team, changes, guide, usage, wizard,
+    projects, settings, palette, workspace). A feature keeps its components and
+    its `actions.ts` together; components read the store, actions change it.
+  - `ui/`: the reusable, presentational components (buttons, pills, cards,
+    popover, menus, markdown, diffs). They take props only: no store, no IPC,
+    no project knowledge. Import them from `ui/index.ts`.
+  - `lib/`: plain code shared by features: the typed `window.api` bridge, the
+    IPC data types, project data helpers, formatting.
+  - `styles/`: the stylesheets, unchanged from before the move to React.
 
 ## Working in a project
 

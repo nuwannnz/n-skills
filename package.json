@@ -49,7 +49,8 @@
     "lint:md": "markdownlint-cli2 --config spec/markdownlint.json \"*.md\" \"spec/**/*.md\" \"skills/**/*.md\" \"examples/**/*.md\"",
     "check": "npm run typecheck && npm run lint:md && npm test",
     "desktop": "npm start -w desktop",
-    "check:desktop": "npm run check -w desktop"
+    "check:desktop": "npm run check -w desktop",
+    "desktop:dev": "npm run dev -w desktop"
   },
   "dependencies": {
     "markdownlint": "^0.41.1",

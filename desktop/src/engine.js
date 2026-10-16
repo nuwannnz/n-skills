@@ -52,7 +52,7 @@ export function engineEnv(path, auth = { mode: 'local' }) {
     env[k] = v;
   }
   env.PATH = path;
-  env.CLAUDE_AGENT_SDK_CLIENT_APP = 'scrumo-desktop';
+  env.CLAUDE_AGENT_SDK_CLIENT_APP = 'n-skills-client/0.0.1';
   if (auth.mode === 'api-key') env.ANTHROPIC_API_KEY = auth.key;
   return env;
 }
@@ -89,6 +89,9 @@ export function decide(toolName, input, root) {
   return { ask: true };
 }
 
+/** Stream events worth passing on: a new message or block starting, and reply text. The rest would only flood the window. */
+const keepStream = e => e?.type === 'message_start' || e?.type === 'content_block_start' || (e?.type === 'content_block_delta' && e.delta?.type === 'text_delta');
+
 /** One conversation: a long-lived Claude Code process fed with user messages. */
 export class ChatSession {
   constructor({ root, claudePath, env, onMessage, askPerson, autoApproveDocEdits = false, model, resume }) {
@@ -124,6 +127,8 @@ export class ChatSession {
         settings: { disableClaudeAiConnectors: true },
         systemPrompt: { type: 'preset', preset: 'claude_code', append: APPEND },
         abortController: this.abort,
+        // Partial messages drive the chat's live status and stream the reply as it is written.
+        includePartialMessages: true,
         canUseTool: async (toolName, input, { signal }) => {
           const d = decide(toolName, input, this.root);
           if (d.allow) return { behavior: 'allow', updatedInput: input };
@@ -138,7 +143,7 @@ export class ChatSession {
     });
     this.done = (async () => {
       try {
-        for await (const msg of this.q) this.onMessage(msg);
+        for await (const msg of this.q) if (msg.type !== 'stream_event' || keepStream(msg.event)) this.onMessage(msg);
       } catch (err) {
         if (!this.closed) this.onMessage({ type: 'app_error', message: String(err?.message ?? err) });
       }
